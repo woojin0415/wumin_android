@@ -776,7 +776,8 @@ public abstract class CameraActivity extends AppCompatActivity
         // We don't use a front facing camera in this sample.
         //우리는 사용할꺼임.
         final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-        if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+        //LENS_FACING_BACK으로 설정 시 앞면 카메라
+        if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
           continue;
         }
 
@@ -791,7 +792,7 @@ public abstract class CameraActivity extends AppCompatActivity
         // This should help with legacy situations where using the camera2 API causes
         // distorted or otherwise broken previews.
         useCamera2API =
-            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
+            (facing == CameraCharacteristics.LENS_FACING_FRONT)
                 || isHardwareLevelSupported(
                     characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
         LOGGER.i("Camera API lv2?: %s", useCamera2API);

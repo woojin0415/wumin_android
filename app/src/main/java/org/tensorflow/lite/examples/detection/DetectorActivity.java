@@ -18,6 +18,9 @@ package org.tensorflow.lite.examples.detection;
 
 import static android.speech.tts.TextToSpeech.ERROR;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -27,7 +30,12 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.RemoteException;
 import android.os.SystemClock;
@@ -36,6 +44,10 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -64,6 +76,9 @@ import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallbac
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.navi.Bluetooth;
+import org.tensorflow.lite.examples.detection.navi.user_orientation;
+import org.tensorflow.lite.examples.detection.navi.wifi;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.DetectorFactory;
 import org.tensorflow.lite.examples.detection.tflite.YoloV5Classifier;
@@ -77,6 +92,27 @@ import android.os.VibrationEffect;
  * objects.
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener{
+
+
+    //Navi Parameters
+    private SensorManager sm;
+    private WifiManager wfm;
+    private Sensor acc;
+    private Sensor mag;
+    private Sensor grv;
+    private user_orientation user_ori;
+    private Drawable drawable;
+    private Resources res;
+
+    private int test = 0;
+    Bluetooth ble;
+
+    int[] nop_per_section = new int [] {5, 3, 4};
+    int [] init_nop = new int[]{0,5,8};
+
+    private boolean explaining = false;
+    //navigation
+
     private static final Logger LOGGER = new Logger();
 
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
@@ -119,7 +155,115 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     protected Vibrator vibrator;
     protected ArrayList<ArrayList> QRData;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
+
+        TextView tv = findViewById(R.id.tv_sector);
+        TextView tv_section = findViewById(R.id.tv_section);
+        Button start_s1 = findViewById(R.id.bt_start_s1);
+        Button stop_s1 = findViewById(R.id.bt_stop_s1);
+
+        Button start_s2 = findViewById(R.id.bt_start_s2);
+        Button stop_s2 = findViewById(R.id.bt_stop_s2);
+
+        Button start_s3 = findViewById(R.id.bt_start_s3);
+        Button stop_s3 = findViewById(R.id.bt_stop_s3);
+
+        Button bt_test = findViewById(R.id.bt_test);
+
+
+
+        ImageView[] maps_sector1 = new ImageView[48];
+        maps_sector1[0] = findViewById(R.id.s_1);
+        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                tts.setLanguage(Locale.KOREAN);
+            }
+        });
+        tts.setPitch(1.0f);
+
+
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        //grv = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        res = getResources();
+        wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifi WiFi = new wifi(wfm, this, tv_section);
+        WiFi.start();
+
+
+        user_ori = new user_orientation(sm, acc, mag, tts);
+
+
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        ble = new Bluetooth(adapter, tv, maps_sector1, user_ori, tts, this);
+
+
+        start_s1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                user_ori.init();
+                //user_ori.set_correction(90);
+                ble.start( "0");
+                //ble.start(sector2,"2",p_loc_2,corner_2);
+                //ble.start(sector3,"3",p_loc_3,corner_3);
+            }
+        });
+
+        stop_s1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ble.stop();
+            }
+        });
+
+        start_s2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                user_ori.init();
+                ble.start("1");
+            }
+        });
+
+        stop_s2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ble.stop();
+            }
+        });
+
+        start_s3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                user_ori.init();
+                ble.start("2");
+            }
+        });
+
+        stop_s3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ble.stop();
+            }
+        });
+
+        bt_test.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                test++;
+            }
+        });
+    }
+
+    public void setExplaining(boolean tf){
+        explaining = tf;
+    }
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -306,7 +450,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     private String[] jsonParsing()
     {
-        String[] URLList = new String[] {"","","","","","","","","",""};
+        int all = 0;
+        for(int i = 0; i < nop_per_section.length; i++)
+            all+= nop_per_section[i];
+        String[] URLList = new String[all];
+        for(int i = 0; i < all; i++)
+            URLList[i] = "";
+
         String getJsonStr = getJsonString();
         try{
             JSONObject jsonObject = new JSONObject(getJsonStr);
@@ -320,15 +470,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 JSONObject urlObject = urlList.getJSONObject(i);
                 idNum = Integer.valueOf(urlObject.getString("id"));
 
-                if(idNum > 0 && idNum <= 10){
-                    URLList[idNum -1] = urlObject.getString("Url");
+                if(idNum > 0 && idNum <= 20){
+                    URLList[i] = urlObject.getString("Url");
 
                 }
                 else{
                     //LOGGER.e("Json ID Error " + idNum);
                 }
             }
-
             JSONArray VoiceStr = jsonObject.getJSONArray("Voice");
             JSONObject voiceObject = VoiceStr.getJSONObject(0);
             title_Start_String =voiceObject.getString("titleS");
@@ -455,10 +604,40 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                                     }
                                 }
                            }
-                           else if(classIndex >= 2 ) {
-                                Toast.makeText(getApplicationContext(), "QRCode" + classIndex, Toast.LENGTH_SHORT).show();
+                            else if(!ble.getchangable() && explaining) {
+                                new Thread(() -> {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                //tts.speak(String.valueOf(ble.getsection()) + "번 전시관입니다.", TextToSpeech.QUEUE_FLUSH, null);
+                                                //tts.speak(String.valueOf(ble.num_pic()),TextToSpeech.QUEUE_FLUSH,null);
+                                                //title 알아오기
+                                                String title = (String) QRData.get(init_nop[ble.getsection()] + ble.num_pic()).get(0);
+                                                //내용 알아오기
+                                                String desc = (String) QRData.get(init_nop[ble.getsection()]+ ble.num_pic()).get(1);
 
-                           }
+                                                Log.e("section_check", String.valueOf(init_nop[ble.getsection()] + ble.num_pic()));
+                                                Log.e("section_check", title);
+                                                Log.e("section_check_pic", desc);
+                                                tts.speak(title, TextToSpeech.QUEUE_FLUSH, null, null);
+                                                Thread.sleep(2000);
+                                                //tts.speak(desc, TextToSpeech.QUEUE_FLUSH, null, null);
+                                                explaining = false;
+                                                while(true){
+                                                    if(ble.getchangable()) {
+                                                        tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
+                                                        break;
+                                                    }
+                                                }
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                }).start();
+
+                            }
                         }
 
                         tracker.trackResults(mappedRecognitions, currTimestamp);
