@@ -1,0 +1,55 @@
+{
+  "QRCode": [
+    {
+      "id": 1,
+      "Url": "http://m.site.naver.com/1diXG"
+    },
+    {
+      "id": 2,
+      "Url": "http://m.site.naver.com/1diXV"
+    },
+    {
+      "id": 3,
+      "Url": "http://m.site.naver.com/1diWJ"
+    },
+    {
+      "id": 4,
+      "Url": "http://m.site.naver.com/1diW4"
+    },
+    {
+      "id": 5,
+      "Url": "http://m.site.naver.com/1diWz"
+    },
+    {
+      "id": 6,
+      "Url": "http://m.site.naver.com/1diWY"
+    },
+    {
+      "id": 7,
+      "Url": "http://m.site.naver.com/1diX3"
+    },
+    {
+      "id": 8,
+      "Url": "http://m.site.naver.com/1diXi"
+    },
+    {
+      "id": 9,
+      "Url": "http://m.site.naver.com/1diXp"
+    },
+    {
+      "id": 10,
+      "Url": "http://m.site.naver.com/1diXy"
+    }
+  ],
+"Voice": [
+    {
+      "titleS": "제목은",
+      "titleE": "입니다."
+    }
+  ],
+  "PersonDetect": [
+    {
+      "detect":"사람이 근처에 있어요"
+    }
+  ]
+}
