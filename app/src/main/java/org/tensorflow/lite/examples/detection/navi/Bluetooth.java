@@ -37,10 +37,6 @@ public class Bluetooth {
     private BluetoothAdapter adapter;
     private int[][] rssi_value;
 
-    //응답을 받고 나서 ble scan을 하도록 설정하는 변수 (t: 스캔, f: 스캔 x)
-    private boolean scan;
-    private int interval_count;
-
 
 
     // 구역에 있는 맥 주소
@@ -97,12 +93,11 @@ public class Bluetooth {
     private int[] location_queue;
     // location queue index 위치 n_lq % 30
     private int n_lq;
-    DetectorActivity da;
-    private boolean in_pic = true;
+    private work_information wi;
 
 
 
-    public Bluetooth(BluetoothAdapter adapter, TextView tv, ImageView[] maps, user_orientation user_ori, TextToSpeech tts, DetectorActivity da){
+    public Bluetooth(BluetoothAdapter adapter, TextView tv, ImageView[] maps, user_orientation user_ori, TextToSpeech tts){
         this.adapter = adapter;
         scanner = adapter.getBluetoothLeScanner();
         this.rssi_value = new int[6][collect_num];
@@ -110,7 +105,6 @@ public class Bluetooth {
         this.maps = maps;
         this.user_ori = user_ori;
         this.tts = tts;
-        this.da = da;
 
 
         changable = true;
@@ -138,8 +132,26 @@ public class Bluetooth {
         sections[0] = sector1;
         sections[1] = sector2;
         sections[2] = sector3;
+        wi = new work_information(3, 11);
 
+        set_wi();
+    }
 
+    //작품 정보 입력
+    public void set_wi(){
+        wi.set_work(0,0, "시작 점", "시작 작품 설명");
+        wi.set_work(0,1, "화성 풍경: 가림막", "2번 작품 설명");
+        wi.set_work(0,2, "화성 놀이터", "4번 작품 설명");
+        wi.set_work(0,3, "화성 풍경: 흙", "6번 작품 설명");
+        wi.set_work(0,4, "주차장", "8번 작품 설명");
+
+        wi.set_work(1,0,"쇼룸 1", "10번 작품 설명");
+        wi.set_work(1,1,"그린 벨트", "13번 작품 설명");
+        wi.set_work(1,2,"중첩 규제 지도", "14번 작품 설명");
+
+        wi.set_work(2,0,"재활용 수거일", "15번 작품 설명");
+        wi.set_work(2,1,"옆집", "16번 작품 설명");
+        wi.set_work(2,2,"화성풍경: 모델하우스", "17번 작품 설명");
     }
 
     public void start(String section) {
@@ -159,10 +171,6 @@ public class Bluetooth {
         num_of_cali = 0;
         cali_median = 0;
 
-        scan = true;
-        interval_count = 0;
-
-
 
         for (int i = 0; i < location_queue.length; i++)
             location_queue[i] = -1;
@@ -170,7 +178,7 @@ public class Bluetooth {
         send_num = 0;
 
         scan();
-        Log.e("TAG", "시작");
+        Log.e("BLE", "시작");
     }
 
     public int getsection(){
@@ -213,13 +221,13 @@ public class Bluetooth {
     private BluetoothAdapter.LeScanCallback scancallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
-            //Log.e("BLE", "Scan call");
+                    Log.e("BLE", "Scan call");
 
 
                     String macAdd = device.getAddress();
 
 
-                    if (in_pic) {
+                    if (true) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
                         if (check_rssi(check)) {
                             for(int i =0; i<n_b.length; i++){
@@ -253,10 +261,6 @@ public class Bluetooth {
                             }
                         }
                     }
-                    interval_count++;
-
-
-
         }
     };
 
@@ -324,8 +328,9 @@ public class Bluetooth {
 
 
                 // 보고 있는 방향이 앞이라면 앞으로만 1칸씩만 이동 가능하게 설정
+                // 작품 설명 중이 아니여야 응답 인식 (explaining == false)
                 //if(changable && direction) {
-                if(true){
+                if(true && changable){
                     //location queue에 들어가 있는 내용들이 전부 동일한지 체크
                     location_queue[n_lq%location_queue.length] = map_index;
                     n_lq++;
@@ -391,7 +396,6 @@ public class Bluetooth {
                 tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
                 //orientation 모듈에 설명중이 아니라고 세팅
                 user_ori.set_explain(false, "");
-                changable = true;
             }
 
         }
@@ -405,19 +409,6 @@ public class Bluetooth {
                 else {
                     tts.speak(drec[0] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // TODO Auto-generated method stub
-                        try {
-                            in_pic = false;
-                            Thread.sleep(1000);
-                            in_pic = true;
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).start();
                 user_ori.change_forward(90);
             }
         }
@@ -427,17 +418,16 @@ public class Bluetooth {
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
                 tts.speak("주위에 다음 작품이 있습니다", TextToSpeech.QUEUE_FLUSH, null);
-                //user_ori.set_explain(true, p_name[index_return(p_loc[Integer.valueOf(section)], map_index)]);
-                da.setExplaining(true);
-                changable = false;
+                tts.speak("제목: " + wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
+                tts.speak("설명: " + wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         // TODO Auto-generated method stub
                         try {
-                            in_pic = false;
-                            Thread.sleep(1000);
-                            in_pic = true;
+                            changable = false;
+                            Thread.sleep(2000);
+                            changable = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }

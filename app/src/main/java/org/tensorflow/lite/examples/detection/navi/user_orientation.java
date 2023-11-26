@@ -133,7 +133,7 @@ public class user_orientation implements SensorEventListener{
                     if(!init){
                         if(init_num == 200){
                             init = true;
-                            tts.speak("방향 설정이 완료되었습니다.", TextToSpeech.QUEUE_ADD, null);
+                            //tts.speak("방향 설정이 완료되었습니다.", TextToSpeech.QUEUE_ADD, null);
                             correction_degree = moveaverage(init_array);
                         }
                         else {

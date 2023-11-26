@@ -200,7 +200,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        ble = new Bluetooth(adapter, tv, maps_sector1, user_ori, tts, this);
+        ble = new Bluetooth(adapter, tv, maps_sector1, user_ori, tts);
 
 
         start_s1.setOnClickListener(new View.OnClickListener() {
