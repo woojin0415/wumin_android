@@ -50,7 +50,7 @@ public class Bluetooth {
     private int num_of_cali;
 
     //median filter에 사용할 rssi 값 개수
-    private int collect_num = 10;
+    private int collect_num = 6;
     //이전에 분류된 구역 번호
     private int currentSector = -1;
 
@@ -206,9 +206,16 @@ public class Bluetooth {
     public boolean getchangable(){
         return changable;
     }
-    public void set_changable(boolean tf){
-        Log.e("BLE", "Changable: " + String.valueOf(tf));
-        this.changable = tf;
+    public int set_changable(){
+        if(list_search(p_loc[Integer.valueOf(section)], currentSector)){
+            this.changable = !changable;
+            if(changable){
+                return 1;
+            }
+            else
+                return 2;
+        }
+        return 3;
     }
 
     public void stop() {
@@ -234,11 +241,7 @@ public class Bluetooth {
     private BluetoothAdapter.LeScanCallback scancallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
-                    Log.e("BLE", "Scan call");
-
-
                     String macAdd = device.getAddress();
-
 
                     if (true) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
@@ -247,6 +250,7 @@ public class Bluetooth {
                                 n_b[i] = 0;
                                 check[i] = false;
                             }
+                            //tts.speak("데이터 전송", TextToSpeech.QUEUE_FLUSH, null);
                             send(rssi_value);
                             send_num++;
                             //Log.e("comm", "send");
@@ -255,6 +259,7 @@ public class Bluetooth {
                         //각 구역별 배치된 비콘 RSSI 수집
                         for (int i = 0; i < Macs.length; i++) {
                             if (macAdd.equals(Macs[i]) && !check[i]) {
+                                Log.e("BLE", "Scan call");
                                 if (n_b[i] != collect_num) {
                                     //Log.e("ble",String.valueOf(i) + ": " + String.valueOf(n_b[i]));
                                     rssi_value[i][n_b[i]] = -rssi;
@@ -264,15 +269,6 @@ public class Bluetooth {
                             }
                         }
 
-                        //보정용 비콘 수집
-                        if (macAdd.equals(cali)) {
-                            if (num_of_cali == collect_num) {
-                                cali_median = Integer.valueOf(median_rssi(rssi_cali));
-                            } else {
-                                rssi_cali[num_of_cali % collect_num] = rssi;
-                                num_of_cali += 1;
-                            }
-                        }
                     }
         }
     };
@@ -287,7 +283,7 @@ public class Bluetooth {
     }
 
     private void send (int[][] rssi_value) {
-        //Log.e("TAG", "전송");
+        Log.e("comm", "전송");
         String r1 = "0";
         String r2 = "0";
         String r3 = "0";
@@ -430,8 +426,8 @@ public class Bluetooth {
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
                 tts.speak("주위에 다음 작품이 있습니다", TextToSpeech.QUEUE_FLUSH, null);
-                tts.speak("제목: " + wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
-                tts.speak("설명: " + wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
+                tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
+                tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -455,8 +451,8 @@ public class Bluetooth {
                 if (section == "0")
                     tts.speak("왼쪽으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
                 if(section == "1"){
-                    if(currentSector == 4)
-                        tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
+                    if(currentSector == 4){}
+                        //tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
                     if(currentSector == 8)
                         tts.speak("모든 전시관 관람이 끝났습니다.", TextToSpeech.QUEUE_ADD, null);
                 }

@@ -71,40 +71,29 @@ public class user_orientation implements SensorEventListener{
             System.arraycopy(event.values, 0, acc_values, 0, event.values.length);
             filter[count%filter_length] = acc_values[1];
             count++;
-            if (check_filter(filter) && explain && time_interval){
-                tv.setBackgroundColor(Color.parseColor("#646464"));
+            if (check_filter(filter) && time_interval){
                 explain = false;
+                if(ble.set_changable() == 1){
+                    tv.setBackgroundColor(Color.parseColor("#646464"));
+                }
+                if(ble.set_changable() == 2){
+                    tv.setBackgroundColor(Color.parseColor("#ffffff"));
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             time_interval = false;
-                            Thread.sleep(2000);
+                            Thread.sleep(4000);
                             time_interval = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
                     }
                 }).start();
-            }
-            else if (check_filter(filter) && !explain && time_interval){
-                tv.setBackgroundColor(Color.parseColor("#ffffff"));
-                explain = true;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            time_interval = false;
-                            Thread.sleep(2000);
-                            time_interval = true;
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).start();
-            }
 
-            Log.e("ori", String.valueOf(acc_values[0]) + " / " + String.valueOf(acc_values[1]) + " / " + String.valueOf(acc_values[2]));
+            }
+            //Log.e("ori", String.valueOf(acc_values[0]) + " / " + String.valueOf(acc_values[1]) + " / " + String.valueOf(acc_values[2]));
         }
 
 
