@@ -1,4 +1,4 @@
-package org.tensorflow.lite.examples.detection.navi;
+package org.tensorflow.lite.examples.detection.navi_test;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

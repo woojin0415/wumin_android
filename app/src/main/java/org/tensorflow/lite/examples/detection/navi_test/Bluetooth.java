@@ -1,4 +1,4 @@
-package org.tensorflow.lite.examples.detection.navi;
+package org.tensorflow.lite.examples.detection.navi_test;
 
 
 import android.bluetooth.BluetoothAdapter;
@@ -41,7 +41,12 @@ public class Bluetooth {
     private String[] Macs;
     private boolean[] check;
     private int[] n_b;
+
+    private String cali;
     private int[] rssi_cali;
+    private int cali_median;
+    private int num_of_cali;
+
     //median filter에 사용할 rssi 값 개수
     private int collect_num = 6;
     //이전에 분류된 구역 번호
@@ -90,11 +95,12 @@ public class Bluetooth {
 
 
 
-    public Bluetooth(BluetoothAdapter adapter, user_orientation user_ori, TextToSpeech tts){
+    public Bluetooth(BluetoothAdapter adapter, TextView tv, ImageView[] maps, user_orientation user_ori, TextToSpeech tts){
         this.adapter = adapter;
         scanner = adapter.getBluetoothLeScanner();
         this.rssi_value = new int[6][collect_num];
-
+        this.tv = tv;
+        this.maps = maps;
         this.user_ori = user_ori;
         this.tts = tts;
 
@@ -105,6 +111,8 @@ public class Bluetooth {
 
         setRetrofitInit();
         section = "0";
+
+        user_ori.sector_change(maps[0]);
 
         p_loc[0] = p_loc_1;
         p_loc[1] = p_loc_2;
@@ -171,7 +179,8 @@ public class Bluetooth {
         rssi_cali = new int[collect_num];
         for (int i = 0; i < collect_num; i++)
             rssi_cali[i] = 0;
-
+        num_of_cali = 0;
+        cali_median = 0;
 
 
         for (int i = 0; i < location_queue.length; i++)
@@ -231,7 +240,6 @@ public class Bluetooth {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
                     String macAdd = device.getAddress();
-                    Log.e("BLE", "Scan");
 
                     if (true) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송

@@ -1,4 +1,4 @@
-package org.tensorflow.lite.examples.detection.navi;
+package org.tensorflow.lite.examples.detection.navi_test;
 
 
 import android.graphics.Color;
@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 public class user_orientation implements SensorEventListener{
+    private ImageView tv;
     private SensorManager sm;
     private Sensor gyro;
     private Sensor mag;
@@ -70,6 +71,12 @@ public class user_orientation implements SensorEventListener{
             count++;
             if (check_filter(filter) && time_interval){
                 explain = false;
+                if(ble.set_changable() == 1){
+                    tv.setBackgroundColor(Color.parseColor("#646464"));
+                }
+                if(ble.set_changable() == 2){
+                    tv.setBackgroundColor(Color.parseColor("#ffffff"));
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -90,6 +97,21 @@ public class user_orientation implements SensorEventListener{
 
     }
 
+    public void sector_change(ImageView new_tv){
+        if(tv == null) {
+            start = true;
+            tv = new_tv;
+            //tv.setImageResource(R.drawable.resize_compass);
+            //tv.setBackgroundColor(Color.parseColor("#646464"));
+        }
+        else {
+            tv.setRotation(0);
+            //tv.setImageResource(0);
+            //tv.setBackgroundColor(Color.parseColor("#646464"));
+            tv = new_tv;
+            //tv.setImageResource(R.drawable.resize_compass);
+        }
+    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {

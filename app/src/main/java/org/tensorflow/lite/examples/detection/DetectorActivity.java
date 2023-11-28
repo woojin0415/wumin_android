@@ -66,9 +66,9 @@ import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallbac
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
-import org.tensorflow.lite.examples.detection.navi.Bluetooth;
-import org.tensorflow.lite.examples.detection.navi.user_orientation;
-import org.tensorflow.lite.examples.detection.navi.wifi;
+import org.tensorflow.lite.examples.detection.navi_test.Bluetooth;
+import org.tensorflow.lite.examples.detection.navi_test.user_orientation;
+import org.tensorflow.lite.examples.detection.navi_test.wifi;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.DetectorFactory;
 import org.tensorflow.lite.examples.detection.tflite.YoloV5Classifier;

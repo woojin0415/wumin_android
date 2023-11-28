@@ -1,4 +1,4 @@
-package org.tensorflow.lite.examples.detection.navi;
+package org.tensorflow.lite.examples.detection.navi_test;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,9 +18,11 @@ import java.util.List;
 public class wifi{
     private WifiManager wfm;
     private Context context;
-    public wifi(WifiManager wfm, Context context) {
+    private TextView tv;
+    public wifi(WifiManager wfm, Context context, TextView tv) {
         this.wfm = wfm;
         this.context = context;
+        this.tv = tv;
         Log.e("wifi", "init");
     }
 
@@ -65,5 +67,6 @@ public class wifi{
                 s3_rssi = rssi;
             //Log.e("wifiscan", ssid + ": " + String.valueOf(rssi));
         }
+        tv.setText(String.valueOf(s1_rssi) + " / " + String.valueOf(s2_rssi) + " / " + String.valueOf(s3_rssi));
     }
 }
