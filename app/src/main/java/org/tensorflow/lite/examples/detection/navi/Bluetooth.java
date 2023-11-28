@@ -422,7 +422,6 @@ public class Bluetooth {
                 else {
                     tts.speak(drec[0] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                user_ori.change_forward(90);
             }
         }
 

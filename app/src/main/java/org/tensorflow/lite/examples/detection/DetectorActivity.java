@@ -36,8 +36,6 @@ import android.hardware.SensorManager;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.HandlerThread;
-import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
@@ -53,24 +51,16 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import org.altbeacon.beacon.Beacon;
-import org.altbeacon.beacon.BeaconConsumer;
-import org.altbeacon.beacon.BeaconManager;
-import org.altbeacon.beacon.BeaconParser;
-import org.altbeacon.beacon.MonitorNotifier;
-import org.altbeacon.beacon.RangeNotifier;
-import org.altbeacon.beacon.Region;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.nodes.Document;
-import org.tensorflow.lite.examples.detection.beacon.BeaconAdvertisingHandler;
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
 import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
@@ -97,7 +87,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     //Navi Parameters
     private SensorManager sm;
     private WifiManager wfm;
-    private Sensor acc;
+    private Sensor gyro;
     private Sensor mag;
     private Sensor grv;
     private user_orientation user_ori;
@@ -187,7 +177,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
 
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
-        acc = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         //grv = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         res = getResources();
@@ -196,7 +186,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         WiFi.start();
 
 
-        user_ori = new user_orientation(sm, acc, mag, tts);
+        user_ori = new user_orientation(sm, gyro, mag, tts);
 
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -207,7 +197,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             @Override
             public void onClick(View view) {
                 tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
-                user_ori.init();
                 //user_ori.set_correction(90);
                 ble.start( "0");
                 //ble.start(sector2,"2",p_loc_2,corner_2);
@@ -225,7 +214,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         start_s2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                user_ori.init();
                 ble.start("1");
             }
         });
@@ -241,7 +229,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             @Override
             public void onClick(View view) {
                 tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
-                user_ori.init();
                 ble.start("2");
             }
         });
