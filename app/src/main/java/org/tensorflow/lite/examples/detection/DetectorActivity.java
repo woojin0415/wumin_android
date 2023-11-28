@@ -666,19 +666,4 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private enum DetectorMode {
         TF_OD_API;
     }
-
-    @Override
-    protected void setUseNNAPI(final boolean isChecked) {
-        runInBackground(() -> detector.setUseNNAPI(isChecked));
-    }
-
-    @Override
-    protected void setNumThreads(final int numThreads) {
-        runInBackground(() -> detector.setNumThreads(numThreads));
-    }
-
-
-
-
-
 }

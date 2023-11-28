@@ -47,7 +47,7 @@
         </receiver>
 
         <activity
-            android:name=".DetectorActivity"
+            android:name=".MainScreen"
             android:exported="true"
             android:label="Wumin"
             android:screenOrientation="portrait">
@@ -56,5 +56,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".DetectorActivity"></activity>
     </application>
 </manifest>
