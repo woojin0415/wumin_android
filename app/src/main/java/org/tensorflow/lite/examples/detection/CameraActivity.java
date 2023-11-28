@@ -138,6 +138,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
   private static final int BLUETOOTH_SCAN_PERMISSION_CODE = 300;
   private static final int BLUETOOTH_CONNECT_PERMISSION_CODE = 400;
+  private static final int BLUETOOTH_ADVERTISE_PERMISSION_CODE = 500;
 
   private BeaconAdvertisingHandler advertisingHandler;
   private BeaconManager beaconManager;
@@ -176,7 +177,6 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-
     setUser = findViewById(R.id.setUser);
     deviceView = findViewById(R.id.device_list);
     deviceStrings.add("CPU");
@@ -211,13 +211,7 @@ public abstract class CameraActivity extends AppCompatActivity
     modelView.setAdapter(modelAdapter);
     modelView.setItemChecked(defaultModelIndex, true);
     currentModel = defaultModelIndex;
-    modelView.setOnItemClickListener(
-            new AdapterView.OnItemClickListener() {
-              @Override
-              public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                updateActiveModel();
-              }
-            });
+    modelView.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id)->updateActiveModel());
 
     ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
     vto.addOnGlobalLayoutListener(
@@ -373,13 +367,6 @@ public abstract class CameraActivity extends AppCompatActivity
     return rgbBytes;
   }
 
-  protected int getLuminanceStride() {
-    return yRowStride;
-  }
-
-  protected byte[] getLuminance() {
-    return yuvBytes[0];
-  }
 
   /** Callback for android.hardware.Camera API */
   @Override
@@ -513,10 +500,7 @@ public abstract class CameraActivity extends AppCompatActivity
       // Fine Location permission is granted
       // Check if current android version >= 11, if >= 11 check for Background Location permission
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-          // Background Location Permission is granted so do your work here
-
-        } else {
+        if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
           // Ask for Background Location Permission
           askPermissionForBackgroundUsage();
         }
@@ -556,6 +540,24 @@ public abstract class CameraActivity extends AppCompatActivity
           @Override
           public void onDismiss(DialogInterface dialog) {
             requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, BLUETOOTH_CONNECT_PERMISSION_CODE);
+          }
+        });
+        builder.show();
+      }
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (this.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Permission Need!");
+        builder.setMessage("Bluetooth advertise Permission Need!");
+        builder.setPositiveButton(android.R.string.ok, null);
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+          @Override
+          public void onDismiss(DialogInterface dialog) {
+            requestPermissions(new String[]{Manifest.permission.BLUETOOTH_ADVERTISE}, BLUETOOTH_ADVERTISE_PERMISSION_CODE);
           }
         });
         builder.show();
@@ -669,15 +671,10 @@ public abstract class CameraActivity extends AppCompatActivity
           // User granted location permission
           // Now check if android version >= 11, if >= 11 check for Background Location Permission
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-              // Background Location Permission is granted so do your work here
-            } else {
-              // Ask for Background Location Permission
+            if (ContextCompat.checkSelfPermission(CameraActivity.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
               askPermissionForBackgroundUsage();
             }
           }
-        } else {
-          // User denied location permission
         }
         break;
       case BACKGROUND_LOCATION_PERMISSION_CODE:
@@ -695,13 +692,7 @@ public abstract class CameraActivity extends AppCompatActivity
           builder.setTitle("권한 제한");
           builder.setMessage("블루투스 스캔권한이 허용되지 않았습니다.");
           builder.setPositiveButton(android.R.string.ok, null);
-          builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-            }
-
-          });
+          builder.setOnDismissListener(dialogInterface ->{});
           builder.show();
         }
         break;
@@ -713,13 +704,20 @@ public abstract class CameraActivity extends AppCompatActivity
           builder.setTitle("권한 제한");
           builder.setMessage("블루투스 연결 권한이 허용되지 않았습니다.");
           builder.setPositiveButton(android.R.string.ok, null);
-          builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-            }
-
-          });
+          builder.setOnDismissListener(dialogInterface ->{});
+          builder.show();
+        }
+        break;
+      case BLUETOOTH_ADVERTISE_PERMISSION_CODE:
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          Log.d("디버깅", "beacon advertise permission granted");
+        }
+        else {
+          final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+          builder.setTitle("권한 제한");
+          builder.setMessage("블루투스 advertise 권한이 허용되지 않았습니다.");
+          builder.setPositiveButton(android.R.string.ok, null);
+          builder.setOnDismissListener(dialogInterface ->{});
           builder.show();
         }
         break;
@@ -736,15 +734,10 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   private boolean hasPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       return checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED;
-    } else {
-      return true;
-    }
   }
 
   private void requestPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA)) {
         Toast.makeText(
                 CameraActivity.this,
@@ -753,7 +746,6 @@ public abstract class CameraActivity extends AppCompatActivity
             .show();
       }
       requestPermissions(new String[] {PERMISSION_CAMERA}, PERMISSIONS_REQUEST);
-    }
   }
 
   // Returns true if the device supports the required hardware level, or better.
@@ -893,8 +885,7 @@ public abstract class CameraActivity extends AppCompatActivity
     if(ratio < 1.0)
       return Math.pow(ratio, 10);
     else{
-      double distance = (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
-      return distance;
+      return (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
     }
   }
 
@@ -922,9 +913,6 @@ public abstract class CameraActivity extends AppCompatActivity
 
   protected abstract Size getDesiredPreviewFrameSize();
 
-  protected abstract void setNumThreads(int numThreads);
-
-  protected abstract void setUseNNAPI(boolean isChecked);
 
   protected abstract void initializeTTS();
   protected abstract void onBeaconDetected(Beacon beacon);
