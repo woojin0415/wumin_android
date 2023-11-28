@@ -138,6 +138,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
   private static final int BLUETOOTH_SCAN_PERMISSION_CODE = 300;
   private static final int BLUETOOTH_CONNECT_PERMISSION_CODE = 400;
+  private static final int BLUETOOTH_ADVERTISE_PERMISSION_CODE = 500;
 
   private BeaconAdvertisingHandler advertisingHandler;
   private BeaconManager beaconManager;
@@ -561,6 +562,24 @@ public abstract class CameraActivity extends AppCompatActivity
         builder.show();
       }
     }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (this.checkSelfPermission(Manifest.permission.BLUETOOTH_ADVERTISE) != PackageManager.PERMISSION_GRANTED) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Permission Need!");
+        builder.setMessage("Bluetooth advertise Permission Need!");
+        builder.setPositiveButton(android.R.string.ok, null);
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+          @Override
+          public void onDismiss(DialogInterface dialog) {
+            requestPermissions(new String[]{Manifest.permission.BLUETOOTH_ADVERTISE}, BLUETOOTH_ADVERTISE_PERMISSION_CODE);
+          }
+        });
+        builder.show();
+      }
+    }
   }
 
   private void askForLocationPermission() {
@@ -712,6 +731,25 @@ public abstract class CameraActivity extends AppCompatActivity
           final AlertDialog.Builder builder = new AlertDialog.Builder(this);
           builder.setTitle("권한 제한");
           builder.setMessage("블루투스 연결 권한이 허용되지 않았습니다.");
+          builder.setPositiveButton(android.R.string.ok, null);
+          builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+            }
+
+          });
+          builder.show();
+        }
+        break;
+      case BLUETOOTH_ADVERTISE_PERMISSION_CODE:
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          Log.d("디버깅", "beacon advertise permission granted");
+        }
+        else {
+          final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+          builder.setTitle("권한 제한");
+          builder.setMessage("블루투스 advertise 권한이 허용되지 않았습니다.");
           builder.setPositiveButton(android.R.string.ok, null);
           builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
 
