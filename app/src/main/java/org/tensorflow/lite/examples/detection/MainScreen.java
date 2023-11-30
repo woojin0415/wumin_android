@@ -1,10 +1,9 @@
 package org.tensorflow.lite.examples.detection;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
@@ -14,16 +13,15 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import org.tensorflow.lite.examples.detection.layout.squarebutton;
 import org.tensorflow.lite.examples.detection.navi.Bluetooth;
 import org.tensorflow.lite.examples.detection.navi.user_orientation;
 import org.tensorflow.lite.examples.detection.navi.wifi;
 
+import java.util.List;
 import java.util.Locale;
 
 public class MainScreen extends AppCompatActivity {
@@ -37,13 +35,15 @@ public class MainScreen extends AppCompatActivity {
     private user_orientation user_ori;
     private boolean start = false;
     Bluetooth ble;
-    private TextToSpeech  tts;
+    private TextToSpeech tts;
 
 
     private boolean click;
+
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_screen);
+        
 
         LinearLayout b_layout = findViewById(R.id.button_layout);
         Button bt_test = findViewById(R.id.bt_test);
@@ -71,7 +71,6 @@ public class MainScreen extends AppCompatActivity {
         mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifi WiFi = new wifi(wfm, this);
-        WiFi.start();
 
 
         user_ori = new user_orientation(sm, gyro, mag, tts);
@@ -106,8 +105,10 @@ public class MainScreen extends AppCompatActivity {
             public void onClick(View view) {
                 click = !click;
                 if(!start){
+                    tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
                     ble.start("0");
+                    WiFi.start();
                 }
                 else {
                     start = false;

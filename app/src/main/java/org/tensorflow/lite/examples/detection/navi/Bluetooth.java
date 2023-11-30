@@ -129,7 +129,7 @@ public class Bluetooth {
 
     //작품 정보 입력
     public void set_wi(){
-        wi.set_work(0,0, "시작 점", "\n" +
+        wi.set_work(0,0, "", "\n" +
                 "김지은 작가의 개인전 <화성 N 지구에서>에 오신 것을 환영합니다.\n" +
                 "\n" +
                 "이번 전시는 제21회 우민미술상 수상자 김지은 작가의 개인전입니다.\n" +
@@ -402,7 +402,7 @@ public class Bluetooth {
         //코너 일 때 설정
         if (list_search(corner[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if (section == "1" && currentSector == 1){
+                if (section == "1" && currentSector == 1 || section == "0"){
                     tts.speak(drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else {
@@ -415,7 +415,7 @@ public class Bluetooth {
         //그림 있다는 알림 및 그림 설명 실해
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                tts.speak("주위에 다음 작품이 있습니다", TextToSpeech.QUEUE_FLUSH, null);
+                tts.speak("주위에 다음 작품이 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
                 tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
                 tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
                 new Thread(new Runnable() {
@@ -424,7 +424,7 @@ public class Bluetooth {
                         // TODO Auto-generated method stub
                         try {
                             changable = false;
-                            Thread.sleep(2000);
+                            Thread.sleep(3000);
                             changable = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);

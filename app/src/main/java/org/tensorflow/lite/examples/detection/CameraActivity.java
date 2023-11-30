@@ -159,6 +159,7 @@ public abstract class CameraActivity extends AppCompatActivity
     }
   }
 
+
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);

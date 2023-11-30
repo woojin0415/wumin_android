@@ -6,7 +6,7 @@ package org.tensorflow.lite.examples.detection.navi;
 public class work_information {
     String [][][] informations;
     work_information(int section_size, int numofwork){
-        informations = new String[section_size][numofwork][2];
+        informations = new String[section_size][numofwork][3];
     }
 
     void set_work(int section, int number, String name, String desc){

@@ -25,14 +25,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/main_button_layout"
-            android:padding="10dp">
+            android:padding="30dp">
 
             <org.tensorflow.lite.examples.detection.layout.squarebutton
                 android:id="@+id/bt_main"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/main_button"
-                android:text="Wumin Guide"
+                android:text="실감형 가이드"
+                android:fontFamily="@font/notosans"
                 android:textSize="30dp" />
         </LinearLayout>
 
