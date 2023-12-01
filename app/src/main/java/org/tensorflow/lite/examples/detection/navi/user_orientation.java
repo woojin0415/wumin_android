@@ -31,6 +31,9 @@ public class user_orientation implements SensorEventListener{
 
 
 
+
+
+
     private TextToSpeech tts;
     public user_orientation(SensorManager sm, Sensor gyro, Sensor mag, TextToSpeech tts){
         this.sm = sm;
@@ -68,20 +71,41 @@ public class user_orientation implements SensorEventListener{
             System.arraycopy(event.values, 0, acc_values, 0, event.values.length);
             filter[count%filter_length] = acc_values[1];
             count++;
-            if (check_filter(filter) && time_interval){
-                explain = false;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            time_interval = false;
-                            Thread.sleep(4000);
-                            time_interval = true;
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+            if (check_filter(filter) && time_interval && ble.p_location()){
+                explain = !explain;
+                ble.set_explaining(explain);
+                if(explain){
+                    tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_ADD, null);
+                    ble.speak_wi();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                time_interval = false;
+                                Thread.sleep(4000);
+                                time_interval = true;
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                    }
-                }).start();
+                    }).start();
+                }
+                else{
+                    tts.speak("작품 상세 설명을 끝냅니다", TextToSpeech.QUEUE_FLUSH, null);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                time_interval = false;
+                                Thread.sleep(1000);
+                                time_interval = true;
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }).start();
+                }
+
 
             }
             //Log.e("ori", String.valueOf(acc_values[0]) + " / " + String.valueOf(acc_values[1]) + " / " + String.valueOf(acc_values[2]));

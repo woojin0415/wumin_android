@@ -30,7 +30,6 @@ public class Bluetooth {
 
     private Retrofit retrofit;
     private BluetoothLeScanner scanner;
-    private TextView tv;
     private ImageView[] maps;
     private BluetoothAdapter adapter;
     private int[][] rssi_value;
@@ -56,15 +55,19 @@ public class Bluetooth {
     //그림이 있는 map index 배열
     int[] p_loc_1 = new int[]{0, 1, 4, 8, 9};
     int[] corner_1 = new int[]{2, 7, 10};
+    int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
     int[] p_loc_2 = new int[]{2, 7, 8};
     int[] corner_2 = new int[]{1, 3, 8};
+    int[] route_2 = new int[]{0,1,2,3,4,5,6,7,8};
 
     int[] p_loc_3 = new int[]{1, 3, 6};
-    int[] corner_3 = new int[]{2, 5, 7};
+    int[] corner_3 = new int[]{2, 5, 7, 8, 9, 11};
+    int[] route_3 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12};
 
     int[][] p_loc = new int[3][];
     int[][] corner = new int[3][];
+    int[][] route = new int[3][];
 
     //전시 구역이 끝나는 지점
     int [][] last = new int[3][];
@@ -87,6 +90,9 @@ public class Bluetooth {
     // location queue index 위치 n_lq % 30
     private int n_lq;
     private work_information wi;
+
+    //작품 설명중이면 T 아니면 F
+    private boolean explaining;
 
 
 
@@ -114,9 +120,13 @@ public class Bluetooth {
         corner[1] = corner_2;
         corner[2] = corner_3;
 
+        route[0] = route_1;
+        route[1] = route_2;
+        route[2] = route_3;
+
         last[0] = new int[]{13};
         last[1] = new int[]{5, 9};
-        last[2] = new int[]{8};
+        last[2] = new int[]{12};
 
         sections = new String[3][];
         sections[0] = sector1;
@@ -194,17 +204,6 @@ public class Bluetooth {
 
     public boolean getchangable(){
         return changable;
-    }
-    public int set_changable(){
-        if(list_search(p_loc[Integer.valueOf(section)], currentSector)){
-            this.changable = !changable;
-            if(changable){
-                return 1;
-            }
-            else
-                return 2;
-        }
-        return 3;
     }
 
     public void stop() {
@@ -326,15 +325,22 @@ public class Bluetooth {
                 int map_index = Integer.valueOf(response_);
 
 
+                if(section=="2" && currentSector >= 10){
+                    if(map_index == 1)
+                        map_index = 11;
+                    else if(map_index == 0)
+                        map_index = 12;
+                }
+
                 // 보고 있는 방향이 앞이라면 앞으로만 1칸씩만 이동 가능하게 설정
                 // 작품 설명 중이 아니여야 응답 인식 (explaining == false)
                 //if(changable && direction) {
-                if(true && changable){
+                if(true && changable&&!explaining){
                     //location queue에 들어가 있는 내용들이 전부 동일한지 체크
                     location_queue[n_lq%location_queue.length] = map_index;
                     n_lq++;
 
-                    if (map_index - currentSector <= secion_cali[Integer.valueOf(section)] && map_index - currentSector >= 0) {
+                    if (check_route(currentSector, map_index)) {
                         if (map_index - currentSector == 2)
                             map_index -= 1;
                         location_queue[n_lq%location_queue.length] = map_index;
@@ -375,7 +381,6 @@ public class Bluetooth {
     }
 
     private void describe(int map_index, boolean direction){
-        tv.setText(String.valueOf(map_index));
         // user_ori.sector_change(maps[map_index]);
 
         String [] drec = new String[2];
@@ -383,16 +388,12 @@ public class Bluetooth {
             drec[0] = "오른쪽";
             drec[1] = "왼쪽";
         }
-        else{
-            drec[0] = "왼쪽";
-            drec[1] = "오른쪽";
-        }
 
         //그림이 있는 곳에서 없는 곳으로 이동 시
         //그림 설명 종료
         if (list_search(p_loc[Integer.valueOf(section)], currentSector)) {
             if (!list_search(p_loc[Integer.valueOf(section)], map_index)) {
-                tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
+                //tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
                 //orientation 모듈에 설명중이 아니라고 세팅
                 user_ori.set_explain(false, "");
             }
@@ -402,27 +403,11 @@ public class Bluetooth {
         //코너 일 때 설정
         if (list_search(corner[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if (section == "1" && currentSector == 1 || section == "0"){
+                if ((section == "1" && map_index == 1) || (section == "2" && (map_index == 9 || map_index == 11))){
                     tts.speak(drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else {
                     tts.speak(drec[0] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
-                }
-            }
-        }
-
-        //그림이 없는 곳에서 있는 곳으로 이동 시
-        //그림 있다는 알림 및 그림 설명 실해
-        if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
-            if (map_index != currentSector) {
-                if(section == "0" && currentSector == 0){
-                    tts.speak("미술관에 오신 것을 환영합니다.", TextToSpeech.QUEUE_FLUSH, null);
-                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
-                }
-                else {
-                    tts.speak("주위에 다음 작품이 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
-                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
-                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
                 }
                 new Thread(new Runnable() {
                     @Override
@@ -430,13 +415,47 @@ public class Bluetooth {
                         // TODO Auto-generated method stub
                         try {
                             changable = false;
-                            Thread.sleep(3000);
+                            Thread.sleep(2000);
                             changable = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
                     }
                 }).start();
+            }
+        }
+
+        //그림이 없는 곳에서 있는 곳으로 이동 시
+        //그림 있다는 알림 및 그림 설명 실해
+        if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
+            if (map_index != currentSector) {
+                if(section == "0" && map_index == 0){
+                    tts.speak("미술관에 오신 것을 환영합니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak(wi.get_work(0,0)[1], TextToSpeech.QUEUE_ADD, null);
+                }
+                else {
+                    tts.speak("주위에 다음 작품이 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
+                    if(section == "0" && map_index == 9) {
+                        tts.speak("상세 설명을 들으시려면 몸을 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
+                    }
+                    else
+                        tts.speak("상세 설명을 들으시려면 왼쪽으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // TODO Auto-generated method stub
+                            try {
+                                changable = false;
+                                Thread.sleep(8000);
+                                changable = true;
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }).start();
+                }
+
 
             }
         }
@@ -447,13 +466,15 @@ public class Bluetooth {
                 if (section == "0")
                     tts.speak("왼쪽으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
                 if(section == "1"){
-                    if(currentSector == 4){}
+                    if(currentSector == 4){
+                        tts.speak("",TextToSpeech.QUEUE_FLUSH,null);
+                    }
                         //tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
                     if(currentSector == 8)
                         tts.speak("모든 전시관 관람이 끝났습니다.", TextToSpeech.QUEUE_ADD, null);
                 }
                 if(section == "2"){
-                    tts.speak("제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak("왼쪽으로 돌아주세요", TextToSpeech.QUEUE_FLUSH,null);
                 }
             }
         }
@@ -464,11 +485,6 @@ public class Bluetooth {
         int med = arr[arr.length / 2];
         return String.valueOf(med);
     }
-    private  int min_rssi(int arr[]){
-        Arrays.sort(arr);
-        return arr[0];
-    }
-
     private boolean list_search(int[]arr, int value){
         for(int i =0; i<arr.length; i++){
             if (arr[i] == value){
@@ -491,13 +507,11 @@ public class Bluetooth {
         if(section == "0" && currentSector == last[Integer.valueOf(section)][0]){
             start("1");
             currentSector = 0;
-            tv.setText("0");
         }
 
         if(section == "1" && currentSector == last[Integer.valueOf(section)][0]){
             start("2");
             currentSector = 0;
-            tv.setText("0");
         }
         else if (section == "1" && currentSector == last[Integer.valueOf(section)][1]){
 
@@ -506,13 +520,21 @@ public class Bluetooth {
         if(section == "2" && currentSector == last[Integer.valueOf(section)][0]){
             start("1");
             currentSector = 6;
-            tv.setText("5");
         }
+    }
+
+    public void speak_wi(){
+        tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], currentSector))[1], TextToSpeech.QUEUE_ADD, null);
+    }
+
+    public boolean p_location(){
+        return list_search(p_loc[Integer.valueOf(section)], currentSector);
     }
 
     public void set_direction(boolean tf){
         this.direction = tf;
     }
+    public void set_explaining(boolean tf){ this.explaining = tf;}
 
     public boolean check_lq(int[] arr){
         int s = arr[0];
@@ -523,10 +545,19 @@ public class Bluetooth {
         return true;
     }
 
+    public boolean check_route(int current, int index){
+        int[] rt = route[Integer.valueOf(section)];
+        if((index - current <= secion_cali[Integer.valueOf(section)] && index - current >= 0) || (section == "0" && index == 13 && current > 10)){
+            return true;
+        }
+        return  false;
+    }
+
     public boolean check_rssi(boolean [] arr){
         for(int i = 0; i< arr.length; i++)
             if(arr[i] == false)
                 return false;
         return true;
     }
+
 }
