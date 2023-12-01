@@ -415,9 +415,15 @@ public class Bluetooth {
         //그림 있다는 알림 및 그림 설명 실해
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                tts.speak("주위에 다음 작품이 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
-                tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
-                tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
+                if(section == "0" && currentSector == 0){
+                    tts.speak("미술관에 오신 것을 환영합니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
+                }
+                else {
+                    tts.speak("주위에 다음 작품이 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0], TextToSpeech.QUEUE_ADD, null);
+                    tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1], TextToSpeech.QUEUE_ADD, null);
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
