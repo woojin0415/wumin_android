@@ -30,7 +30,6 @@ public class Bluetooth {
 
     private Retrofit retrofit;
     private BluetoothLeScanner scanner;
-    private ImageView[] maps;
     private BluetoothAdapter adapter;
     private int[][] rssi_value;
 
@@ -53,17 +52,17 @@ public class Bluetooth {
     private String section;
 
     //그림이 있는 map index 배열
-    int[] p_loc_1 = new int[]{0, 1, 4, 8, 9};
-    int[] corner_1 = new int[]{2, 7, 10};
+    int[] p_loc_1 = new int[]{0, 1, 4, 8, 10};
+    int[] corner_1 = new int[]{2, 7};
     int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
     int[] p_loc_2 = new int[]{2, 7, 8};
-    int[] corner_2 = new int[]{1, 3, 8};
-    int[] route_2 = new int[]{0,1,2,3,4,5,6,7,8};
+    int[] corner_2 = new int[]{1, 3};
+    int[] route_2 = new int[]{0,1,2,3,4,5,6,7,8,9};
 
     int[] p_loc_3 = new int[]{1, 3, 6};
-    int[] corner_3 = new int[]{2, 5, 7, 8, 9, 11};
-    int[] route_3 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12};
+    int[] corner_3 = new int[]{2, 5, 7, 8, 9, 10};
+    int[] route_3 = new int[]{0,1,2,3,4,5,6,7,8,9,10};
 
     int[][] p_loc = new int[3][];
     int[][] corner = new int[3][];
@@ -81,8 +80,6 @@ public class Bluetooth {
     //현재 사용자 방향 t: 정방향 f: 반대 방향
     private boolean direction;
 
-    //현재 구역에 있는 작품 이름 및 설명
-    private String[] p_name;
 
     //location 정보가 들어가는 queue
     //queue에 저장된 location들이 전부 일치하면 해당 location으로 변경
@@ -126,7 +123,7 @@ public class Bluetooth {
 
         last[0] = new int[]{13};
         last[1] = new int[]{5, 9};
-        last[2] = new int[]{12};
+        last[2] = new int[]{10};
 
         sections = new String[3][];
         sections[0] = sector1;
@@ -325,11 +322,15 @@ public class Bluetooth {
                 int map_index = Integer.valueOf(response_);
 
 
-                if(section=="2" && currentSector >= 10){
+                if(section=="2" && currentSector >=8){
                     if(map_index == 1)
-                        map_index = 11;
+                        map_index = 9;
                     else if(map_index == 0)
-                        map_index = 12;
+                        map_index = 10;
+                }
+                else if(section == "1" && currentSector >=7){
+                    if(map_index == 1)
+                        map_index =9;
                 }
 
                 // 보고 있는 방향이 앞이라면 앞으로만 1칸씩만 이동 가능하게 설정
@@ -364,7 +365,7 @@ public class Bluetooth {
                     }
                 }
 
-                if(check_lq(location_queue)){
+                if(check_lq(location_queue) && changable){
                     map_index = location_queue[0];
                     describe(map_index, direction);
                     location_queue[0] = -1;
@@ -385,16 +386,14 @@ public class Bluetooth {
 
         String [] drec = new String[2];
         if (direction == true){
-            drec[0] = "오른쪽";
-            drec[1] = "왼쪽";
+            drec[0] = "3시 방향";
+            drec[1] = "9시 방향";
         }
 
         //그림이 있는 곳에서 없는 곳으로 이동 시
         //그림 설명 종료
         if (list_search(p_loc[Integer.valueOf(section)], currentSector)) {
             if (!list_search(p_loc[Integer.valueOf(section)], map_index)) {
-                //tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
-                //orientation 모듈에 설명중이 아니라고 세팅
                 user_ori.set_explain(false, "");
             }
 
@@ -403,11 +402,17 @@ public class Bluetooth {
         //코너 일 때 설정
         if (list_search(corner[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if ((section == "1" && map_index == 1) || (section == "2" && (map_index == 9 || map_index == 11))){
-                    tts.speak(drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                if ((section == "1" && map_index == 1) || (section == "2" && map_index == 9)){
+                    tts.speak("막다른 길 입니다. "+drec[1] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                }
+                else if (section == "2" && map_index == 8){
+                    tts.speak("막다른 길 입니다. "+ "1시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                }
+                else if (section == "2" && map_index == 10){
+                    tts.speak("9시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else {
-                    tts.speak(drec[0] + "으로 돌아주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 new Thread(new Runnable() {
                     @Override
@@ -430,25 +435,25 @@ public class Bluetooth {
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
                 if(section == "0" && map_index == 0){
-                    tts.speak("미술관에 오신 것을 환영합니다.", TextToSpeech.QUEUE_FLUSH, null);
                     tts.speak(wi.get_work(0,0)[2], TextToSpeech.QUEUE_ADD, null);
                 }
                 else {
                     String name = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0];
                     String artist = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1];
-                    tts.speak(artist + "작가님의 작품" + name + "이 있는 위치입니다.", TextToSpeech.QUEUE_FLUSH, null);
-                    if(section == "0" && map_index == 9) {
-                        tts.speak("상세 설명을 들으시려면 몸을 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak("잠시 멈춰주세요. " + artist + " 작가님의 작품 중 하나인 " + name + "이 있는 위치입니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    if((section == "0" && map_index == 10) || (section=="1" && map_index == 8)) {
+                        tts.speak("상세 설명을 들으시려면 몸을 좌우로 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
                     }
                     else
-                        tts.speak("상세 설명을 들으시려면 왼쪽으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
+                        tts.speak("상세 설명을 들으시려면 "+drec[1]+"으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             // TODO Auto-generated method stub
+                            // 작품 위치 대기 시간
                             try {
                                 changable = false;
-                                Thread.sleep(8000);
+                                Thread.sleep(15000);
                                 changable = true;
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
@@ -471,12 +476,11 @@ public class Bluetooth {
                         tts.speak("",TextToSpeech.QUEUE_FLUSH,null);
                     }
                         //tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
-                    if(currentSector == 8)
+                    if(currentSector == 9)
                         tts.speak("모든 전시관 관람이 끝났습니다.", TextToSpeech.QUEUE_ADD, null);
                 }
-                if(section == "2"){
-                    tts.speak("왼쪽으로 돌아주세요", TextToSpeech.QUEUE_FLUSH,null);
-                }
+                if(section == "2"){}
+                    //tts.speak("",TextToSpeech.QUEUE_FLUSH, null);
             }
         }
         currentSector = map_index;
@@ -526,6 +530,7 @@ public class Bluetooth {
 
     public void speak_wi(){
         tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], currentSector))[2], TextToSpeech.QUEUE_ADD, null);
+        tts.speak("작품 설명이 끝났습니다. 오른쪽으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
     }
 
     public boolean p_location(){
@@ -536,6 +541,9 @@ public class Bluetooth {
         this.direction = tf;
     }
     public void set_explaining(boolean tf){ this.explaining = tf;}
+    public void set_changable(boolean tf){
+        if(!(section =="0" && currentSector <1))
+            this.changable = tf;}
 
     public boolean check_lq(int[] arr){
         int s = arr[0];

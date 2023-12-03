@@ -68,7 +68,7 @@ public class MainScreen extends AppCompatActivity {
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         //grv = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
-        mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mag = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifi WiFi = new wifi(wfm, this);
 
