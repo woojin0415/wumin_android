@@ -417,6 +417,7 @@ public class Bluetooth {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        //corner time
                         // TODO Auto-generated method stub
                         try {
                             changable = false;
@@ -450,7 +451,7 @@ public class Bluetooth {
                         @Override
                         public void run() {
                             // TODO Auto-generated method stub
-                            // 작품 위치 대기 시간
+                            // p_location time
                             try {
                                 changable = false;
                                 Thread.sleep(15000);
