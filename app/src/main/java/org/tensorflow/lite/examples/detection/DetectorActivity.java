@@ -66,9 +66,9 @@ import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallbac
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
-import org.tensorflow.lite.examples.detection.navi_test.Bluetooth;
-import org.tensorflow.lite.examples.detection.navi_test.user_orientation;
-import org.tensorflow.lite.examples.detection.navi_test.wifi;
+import org.tensorflow.lite.examples.detection.navi.Bluetooth;
+import org.tensorflow.lite.examples.detection.navi.user_orientation;
+import org.tensorflow.lite.examples.detection.navi.wifi;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.DetectorFactory;
 import org.tensorflow.lite.examples.detection.tflite.YoloV5Classifier;
@@ -181,15 +181,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         mag = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         res = getResources();
         wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        wifi WiFi = new wifi(wfm, this, tv_section);
-        WiFi.start();
 
 
         user_ori = new user_orientation(sm, gyro, mag, tts);
 
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        ble = new Bluetooth(adapter, tv, maps_sector1, user_ori, tts);
 
 
         start_s1.setOnClickListener(new View.OnClickListener() {
