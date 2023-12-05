@@ -149,7 +149,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         TextView tv = findViewById(R.id.tv_sector);
         TextView tv_section = findViewById(R.id.tv_section);
         Button start_s1 = findViewById(R.id.bt_start_s1);
@@ -663,7 +662,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     // Which detection model to use: by default uses Tensorflow Object Detection API frozen
     // checkpoints.
-    private enum DetectorMode {
+    enum DetectorMode {
         TF_OD_API;
     }
 }
