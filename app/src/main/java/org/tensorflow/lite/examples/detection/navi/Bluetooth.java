@@ -43,7 +43,7 @@ public class Bluetooth {
     //median filter에 사용할 rssi 값 개수
     private int collect_num = 6;
     //이전에 분류된 구역 번호
-    private int currentSector = -1;
+    private double currentSector = -1;
 
     //몇 번째 보내는 메시지인지 확인
     private int send_num;
@@ -56,12 +56,12 @@ public class Bluetooth {
     int[] corner_1 = new int[]{2, 7};
     int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
-    int[] p_loc_2 = new int[]{2, 7, 8};
-    int[] corner_2 = new int[]{1, 3};
+    int[] p_loc_2 = new int[]{2, 6, 7};
+    int[] corner_2 = new int[]{1, 3, 8};
     int[] route_2 = new int[]{0,1,2,3,4,5,6,7,8,9};
 
     int[] p_loc_3 = new int[]{1, 3, 6};
-    int[] corner_3 = new int[]{2, 5, 7, 8, 9, 10};
+    int[] corner_3 = new int[]{2, 5, 7, 8, 9};
     int[] route_3 = new int[]{0,1,2,3,4,5,6,7,8,9,10};
 
     int[][] p_loc = new int[3][];
@@ -71,7 +71,7 @@ public class Bluetooth {
     //전시 구역이 끝나는 지점
     int [][] last = new int[3][];
 
-    int [] secion_cali = new int[]{2,1,2};
+    int [] secion_cali = new int[]{2,1,1};
 
     private TextToSpeech tts;
 
@@ -104,7 +104,7 @@ public class Bluetooth {
 
         changable = true;
         user_ori.set_ble(this);
-        location_queue = new int[5];
+        location_queue = new int[7];
 
         setRetrofitInit();
         section = "0";
@@ -137,31 +137,21 @@ public class Bluetooth {
     //작품 정보 입력
     public void set_wi(){
         wi.set_work(0,0, "", "김지은","\n" +
-                "김지은 작가의 개인전 <화성 N 지구에서>에 오신 것을 환영합니다.\n" +
-                "\n" +
-                "이번 전시는 제21회 우민미술상 수상자 김지은 작가의 개인전입니다.\n" +
-                "\n" +
-                "여러분은 ‘화성’이란 말을 들으면 어떤 화성이 연상되나요? 이번 전시는 제 21회 우민미술상을 수상한 김지은 작가님이 2017년부터 거주하게 된 화성시 봉담택지지구에서의 삶을 비장소성의 맥락으로 분석한 뒤에 이를 예술로 표현한 작품들을 전시하고 있습니다. 여기서 비장소성은 어디에도 정착하지 않고 잠시 머물거나, 그 공간에 대한 관계와 정체성을 갖지 못하는 것을 의미합니다. \n" +
-                "\n" +
-                "김지은 작가는 이런 비장소성을 작품 소재로 다룸으로서 현대사회 속에 숨겨진 사회적 법규나 제도들을 드러내는 동시에, 이로 인해 소외받은 현대인들의 이면을 작품으로 표현합니다. \n" +
-                "회화, 콜라주 그리고 설치미술과 같이 다양한 매체를 넘나들며 작품세계를 표현해온 김지은 작가님의 작품들을 만나봅시다.");
+                "김지은 작가의 개인전 <화성 and 지구에서>에 오신 것을 환영합니다.\n" +
+                "《화성 and 지구에서》는 제21회 우민미술상을 수상한 김지은 작가의 개인전입니다. 김지은 작가는 현대사회의 도시 개발 속에서 현대인의 삶의 공간이 고유한 장소성을 잃어버리고 획일화·상품화되고 있음에 주목합니다. 이번 전시는 김지은 작가가 2017년 경기도 화성시 봉담지구로 이주한 뒤, 서울과 화성을 오가거나 택지지구에서 생활하면서 낯선 풍경을 접하면서 시작한 작업을 소개합니다. 작가는 오늘의 주거환경을 어떤 시선으로 바라보고 있는지 만나보겠습니다. ");
 
-        wi.set_work(0,1, "화성 풍경: 가림막", "김지은", "<화성 풍경-가림막> 은 작가가 실제로 화성의 봉담택지지구로 이주한 후에 본 병점역 앞의 풍경을 담고 있습니다. 작가가 작업을 구상하던 당시 병점역 앞은 개발구역으로 지정되어 가림막으로 둘러싸인 황량한 땅이었습니다. 지금은 걸을 수 없는 땅이 되었지만, 주위의 느티나무들과 근처에 있는 용주사와 융건릉은 한때 이곳이 장소성을 지닌 곳이라는 것을 보여줍니다. \n" +
-                "\n" +
-                "작가는 이 길을 촬영한 10년에 걸친 거리뷰와 로드뷰에서 카메라 왜곡이 적은 동시에 가장 아름다우면서도 황량한 풍경을 골라 회화로 재현했습니다. 거리뷰 촬영 차량 위에서 발을 땅에 붙이지 않은 시점으로 그린 이 작품을 통해 작가는 장소가 비장소화 되어가는 과정을 적나라하게 보여주고 있습니다.");
-        wi.set_work(0,2, "화성 놀이터", "김지은","아파트 안에 있는 놀이터와 정자는 특정시간대에 아이들이 우글우글 모이다가 갑자기 모두 다 사라지는 신비한 일이 일어나는 곳입니다. 시간대에 따라 놀이터에 모이는 아이들의 연령대는 모두 다르고 택지 지구 안에서 아이들이 놀 만한 곳은 딱히 없어 보입니다. 오래전부터 마을 사람들이 모여 쉬는 곳이었던 정자는 사각, 육각, 팔각 형태도 다양합니다. 이국적인 놀이터와 한국적인 정자의 만남은 아무런 개연성도 없어보입니다.\n" +
-                "\n" +
-                "작가는 공공공간의 기능성을 대표하는 두 공간 또는 사물이 한 장소를 공유하는 장면을 두 개의 화면으로 나누어 화성이라는 공간에 배치했습니다. 어느 단지에서나 볼 수 있는 풍경이기에 익숙하지만 한 걸음만 떨어져서 보면 참 이상한 풍경입니다. 기능적인 배치가 만들어낸 낯선 풍경 그리고 이러한 기능적인 사물/공간이 없다면 갈 곳이 없는 아이들, 이것이 오늘날 택지지구 아파트 단지 안의 풍경입니다. ");
-        wi.set_work(0,3, "화성 풍경: 흙", "김지은","<화성 풍경-흙>은 앞서 보았던 <화성 풍경-가림막>과 대칭되는 작품입니다. 거대하게 쌓여진 흙 아래로 파란색 캔들과 공사현장에서 나온 쓰레기들이 그림 아래를 가득 채우고 있습니다. 번듯하게 완성된 신도시의 풍경 가림막 뒤에는 이렇든 개발 과정에서 생긴 삶의 풍경이 남아있습니다. 작가는 현장을 다니며 개발과정에서 일어난 현상들에 주목하고 도시 이면의 모습을 그림으로 담아왔습니다. \n");
-        wi.set_work(0,4, "주차장", "김지은","서버비아는 자동차 위주의 생활양식으로 주로 미국 교외지역에서 발달했습니다. 작가는 유학시절 디트로이드에서 보았던 서버비아 형태의 대형마트를 화성에서도 보게 되었습니다. 서울의 대형마트들은 대중교통을 바로 이용할 수 있거나 지하주차장이 있는데, 이곳은 출퇴근용 차가 한 대 있고 동네를 다닐 때 쓰는 소형차가 세컨드카로 있는 경우가 많습니다. 작가 본인에게는 낯설었던 택지지구의 삶이 아이들에게는 자연스러운 풍경이 되어 새로운 장소성을 경험하리라고 작가는 생각했습니다. 매 순간마다 변화하는 아이들의 모습과 어디서나 동일한 모습을 보이는 주차장의 풍경은 서로 대비되어 보입니다. \n");
+        wi.set_work(0,1, "화성 풍경: 가림막", "김지은", "작가가 화성 봉담지구로 이주한 후 마주한 병점역 앞 풍경입니다. 아스팔트 도로 좌우로 아름드리나무가 줄지어 있습니다. 유서 깊은 융건릉이 있던 이곳은 개발구역으로 지정된 뒤 철제 가림막이 세워졌고 사람이 발 딛고 걸을 수 없는 황량한 땅이 되었습니다. 작가는 지난 10년간 찍힌 로드뷰 사진 중 카메라 왜곡이 적고, 이곳의 풍경을 가장 아름다우면서도 황량하게 담은 사진을 골라 그림으로써 삶의 터전이 비장소화 되어가는 과정을 재현했습니다. ");
+        wi.set_work(0,2, "화성 놀이터", "김지은","아파트 단지에서 흔히 볼 수 있는 육각 지붕의 정자와 놀이터입니다. 하지만 그 배경은 화성 탐사선이 보내준 황량한 화성 풍경으로 꽤나 낯선 조합입니다. 작가에게 택지개발지구의 놀이터와 정자는 특정 시간대에 아이들이 모이다가 갑자기 모두 다 사라지는 신비로운 곳처럼 느껴졌습니다. 택지개발자의 기능적인 배치가 만들어낸 낯선 풍경 그리고 이런 기능적인 사물/공간이 없다면 갈 곳이 없는 아이들, 이것이 오늘날 택지지구 아파트 단지의 풍경입니다.");
+        wi.set_work(0,3, "화성 풍경: 흙", "김지은","불도저가 한차례 쓸고 간 듯 마구 파헤쳐진 땅의 전경입니다. 공사현장에서 나온 쓰레기가 곳곳에 쌓여 있습니다. 작가는 공사현장을 다니며 도시 개발 이면의 현상에 주목했습니다. 도시 정비 과정에서 삶의 공간은 원래의 장소성을 잃고 방치되곤 합니다. 전시장 바닥에는 공사현장에 설치되는 도로 방호벽을 미니어처로 만든 종이 구조물이 놓여 있습니다. 일상 공간에서 개발이 진행될 때 펼쳐지는 비현실적인 풍경이 전시장에서 반복됩니다.");
+        wi.set_work(0,4, "주차장", "김지은","대형마트 주차장에 두 아이가 서 있습니다. 작가는 화성으로 이주한 뒤 미국에서나 보았던, 차로 가야 하는 빅박스 형태의 대형마트를 보게 되었습니다. 공공택지지구에서 이런 편의시설은 마치 전염병처럼 주변 부지의 개발을 이끌고 주민의 삶의 방식에 영향을 미칩니다. 작가는 본인에겐 낯선 택지지구의 삶이 아이들에게는 자연스러운 것으로 경험되리라 생각했습니다. 매 순간 자라나는 아이들의 모습과 어디나 동일한 교외 대형마트 주차장 풍경이 대비를 이룹니다.");
 
-        wi.set_work(1,0,"쇼룸 1", "김지은","10번 작품 설명");
-        wi.set_work(1,1,"그린 벨트", "김지은","13번 작품 설명");
-        wi.set_work(1,2,"중첩 규제 지도", "김지은","14번 작품 설명");
+        wi.set_work(1,0,"쇼룸 1", "김지은","모델하우스처럼 잘 꾸며진 침실입니다. 최신 유행을 따르면서도 무난한 스타일을 꾸며진 이 공간을 자세히 살펴보면 침구나 카펫, 가구에 이케아 카탈로그에서 수집한 실내 사진이 꼴라주되어 있음을 알 수 있습니다. 공간 너머엔 작가가 살고 있는 아파트 단지가 보입니다. 작가는 밀집된 대단지 아파트의 모습에서 바코드를 연상합니다. 언제나 시세를 확인할 수 있는 아파트에서의 삶에 대해 사적인 공간이 아닌, ‘가판대에 나와 있는 것 같다’라고 비유합니다. ");
+        wi.set_work(1,1,"아파트 컬러 트렌드 VS 르 꼬르뷔지에", "김지은","아파트 컬러에도 트렌드가 있다는 것을 아시나요? 작품의 앞쪽 면에는 요즘 아파트의 컬러 트렌드를 보여주는 파랑, 회색, 갈색 계열 시트지가 붙어 있고, 뒤쪽 면은 건축가 르코르뷔지에가 고안한 20세기 최초의 아파트 ‘유니테 다비타시옹’의 색 구성을 닮았습니다. 르코르뷔지에는 도시 주변부로 밀려난 사람을 위해 아파트를 고안했습니다. 하지만 오늘날 아파트는 그의 의도와는 달리 효율에 따라 수직, 수평의 표준화된 주거공간을 양산하고 있습니다. ");
+        wi.set_work(1,2,"그린 벨트", "김지은","서울 지도에 형형색색 폼폼이가 빽빽하게 붙어 있고 그 주위에는 그린벨트가 조경재료로 꾸며져 있습니다. 폼폼이가 펑! 튀겨나간 듯 서울 주변부로 퍼져 있습니다. 지도 속 알갱이처럼 오늘날 서울에는 절대다수의 인구가 거주하고 있습니다. 작가는 밀집된 색색의 폼폼이들이 폭발해서 그린벨트 바깥으로 터져 나온 듯한 양상을 통해 서울로 과도하게 집중된 사람들의 주거 욕망을 드러냅니다. 그린벨트가 해제되면 수도권의 주거 분포는 어떻게 달라질까요?");
 
-        wi.set_work(2,0,"재활용 수거일", "김지은","15번 작품 설명");
-        wi.set_work(2,1,"옆집", "김지은","16번 작품 설명");
-        wi.set_work(2,2,"화성풍경: 모델하우스", "김지은","17번 작품 설명");
+        wi.set_work(2,0,"재활용 수거일", "김지은","종이박스로 된 거대한 산이 척박한 화성 풍경 위에 그려져 있습니다. 작가가 사는 아파트 단지는 매주 재활용 수거일마다 쓰레기를 경비의 지도에 따라 일사 정연하게 분리수거한 뒤 쌓아 올려 그림과 같이 정리합니다. 이런 방식은 대단지 아파트에서 막대한 소비로 인해 생기는 쓰레기를 가장 효율적으로 처리하는 방법일 것입니다. 작가는 작품에 실제 상품라벨이 적힌 종이박스를 꼴라주하고 재활용 수거일 풍경을 화성을 배경으로 그림으로써 일상 풍경을 낯설고도 기념비적으로 재현합니다.");
+        wi.set_work(2,1,"옆집", "김지은","작가의 집 베란다 창을 열면 보이는 옆라인 아파트 벽면을 그린 작품입니다. 무난한 색으로 도색된 옆집 벽면은 시간대별 빛의 변화에 따라 달리 보입니다. 작은 사각 모듈로 구성된 옆집 이미지는 아파트 단지를 상공에서 촬영한 구글 이미지를 닮았습니다. 우리 아파트 옆집 벽이지만 어디에서 보아도 만날 수 있을 것 같은, 특유의 구조적이며 질서정연한 모습입니다. 작품은 택지지구 개발 이후에도 여전히 삭막한 현대인의 주거환경을 보여줍니다. ");
+        wi.set_work(2,2,"화성풍경: 모델하우스", "김지은","봉담 택지지구 인근에 있던 모델하우스의 철거 장면을 담은 작품입니다. 아파트 분양을 위해 지어지는 모델하우스는 아직 존재하지 않는 아파트를 실제 공간처럼 완벽하게 재현하여 구매자의 거주 욕망을 가상으로 실현해줍니다. 하지만 그 기능을 다 하고 나면 일시에 철거되어 폐허가 됩니다. 작가는 부동산 광고나 대출 전단지, 인테리어 시트지를 꼴라주하여 모델하우스 철거 풍경을 재현함으로써 아파트라는 공간의 일시성과 가상성을 드러냅니다.");
     }
 
     public void start(String section) {
@@ -323,12 +313,12 @@ public class Bluetooth {
 
 
                 if(section=="2" && currentSector >=8){
-                    if(map_index == 1)
+                    if(map_index == 2)
                         map_index = 9;
                     else if(map_index == 0)
                         map_index = 10;
                 }
-                else if(section == "1" && currentSector >=7){
+                else if(section == "1" && currentSector == 8){
                     if(map_index == 1)
                         map_index =9;
                 }
@@ -365,7 +355,7 @@ public class Bluetooth {
                     }
                 }
 
-                if(check_lq(location_queue) && changable){
+                if(check_lq(location_queue) && changable && false){
                     map_index = location_queue[0];
                     describe(map_index, direction);
                     location_queue[0] = -1;
@@ -402,32 +392,19 @@ public class Bluetooth {
         //코너 일 때 설정
         if (list_search(corner[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if ((section == "1" && map_index == 1) || (section == "2" && map_index == 9)){
+                if ((section == "1" && map_index == 1)){
                     tts.speak("막다른 길 입니다. "+drec[1] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else if (section == "2" && map_index == 8){
                     tts.speak("막다른 길 입니다. "+ "1시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                else if (section == "2" && map_index == 10){
+                else if (section == "2" && map_index == 9){
                     tts.speak("9시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else {
                     tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //corner time
-                        // TODO Auto-generated method stub
-                        try {
-                            changable = false;
-                            Thread.sleep(2000);
-                            changable = true;
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).start();
+
             }
         }
 
@@ -445,8 +422,10 @@ public class Bluetooth {
                     if((section == "0" && map_index == 10) || (section=="1" && map_index == 8)) {
                         tts.speak("상세 설명을 들으시려면 몸을 좌우로 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
                     }
-                    else
-                        tts.speak("상세 설명을 들으시려면 "+drec[1]+"으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
+                    else {
+                        tts.speak("상세 설명을 들으시려면 " + drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
+                        tts.speak("설명이 나오지 않는다면 몸을 살짞 흔들어 주세요", TextToSpeech.QUEUE_ADD, null);
+                    }
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -469,19 +448,34 @@ public class Bluetooth {
 
         if(list_search(last[Integer.valueOf(section)], map_index)){
             if(map_index != currentSector){
-                tts.speak("해당 전시관이 끝났습니다", TextToSpeech.QUEUE_FLUSH, null);
-                if (section == "0")
-                    tts.speak("왼쪽으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
+                if (section == "0") {
+                    tts.speak("해당 전시관이 끝났습니다", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak("9시 방향으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
+                }
                 if(section == "1"){
                     if(currentSector == 4){
                         tts.speak("",TextToSpeech.QUEUE_FLUSH,null);
                     }
                         //tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
-                    if(currentSector == 9)
-                        tts.speak("모든 전시관 관람이 끝났습니다.", TextToSpeech.QUEUE_ADD, null);
+                    if(map_index == 9)
+                        tts.speak("지금까지 제21회 우민미술상 수상작가 김지은 개인전《화성N지구에서》를 관람하였습니다. 작가에게 화성시 봉담지구에서의 일상 풍경은 때로는 지구가 아닌 행성 마르스의 풍경처럼 낯설게 다가왔습니다. 지금도 현대사회의 도시 공간은 반복해서 개발되며 고유한 장소성을 잃어가고 있습니다. 여러분은 오늘의 도시를, 주거공간을 어떻게 바라보고 계신가요? 이번 전시가 화성N지구의 이야기에서 여러분의 N지구에 대한 사유로 이어지길 기대합니다. 감사합니다.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                if(section == "2"){}
-                    //tts.speak("",TextToSpeech.QUEUE_FLUSH, null);
+                if(section == "2") {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //corner time
+                            // TODO Auto-generated method stub
+                            try {
+                                Thread.sleep(2000);
+                                tts.speak("11시 방향으로 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }).start();
+
+                }
             }
         }
         currentSector = map_index;
@@ -491,7 +485,7 @@ public class Bluetooth {
         int med = arr[arr.length / 2];
         return String.valueOf(med);
     }
-    private boolean list_search(int[]arr, int value){
+    private boolean list_search(int[]arr, double value){
         for(int i =0; i<arr.length; i++){
             if (arr[i] == value){
                 return true;
@@ -500,7 +494,7 @@ public class Bluetooth {
         return false;
     }
 
-    private int index_return(int arr[], int value){
+    private int index_return(int arr[], double value){
         for(int i =0; i<arr.length; i++){
             if (arr[i] == value){
                 return i;
@@ -525,16 +519,17 @@ public class Bluetooth {
 
         if(section == "2" && currentSector == last[Integer.valueOf(section)][0]){
             start("1");
-            currentSector = 6;
+            currentSector = 5.5;
         }
     }
 
     public void speak_wi(){
         tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], currentSector))[2], TextToSpeech.QUEUE_ADD, null);
-        tts.speak("작품 설명이 끝났습니다. 오른쪽으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
+        tts.speak("작품 설명이 끝났습니다. 3시 방향으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
     }
 
     public boolean p_location(){
+        if(section == "0" && currentSector == 0) return false;
         return list_search(p_loc[Integer.valueOf(section)], currentSector);
     }
 
@@ -543,19 +538,25 @@ public class Bluetooth {
     }
     public void set_explaining(boolean tf){ this.explaining = tf;}
     public void set_changable(boolean tf){
-        if(!(section =="0" && currentSector <1))
-            this.changable = tf;}
+        this.changable = tf;
+    }
 
     public boolean check_lq(int[] arr){
         int s = arr[0];
+
+        int count = 0;
         for (int i=0; i < location_queue.length; i++){
-            if(s!=arr[i] || arr[i] == -1)
-                return false;
+            if(s==arr[i] || arr[i] != -1){
+                count++;
+            }
+
         }
-        return true;
+        if(list_search(p_loc[Integer.valueOf(section)], arr[0]) && count >= 4)
+            return true;
+        return false;
     }
 
-    public boolean check_route(int current, int index){
+    public boolean check_route(double current, int index){
         int[] rt = route[Integer.valueOf(section)];
         if((index - current <= secion_cali[Integer.valueOf(section)] && index - current >= 0) || (section == "0" && index == 13 && current > 10)){
             return true;

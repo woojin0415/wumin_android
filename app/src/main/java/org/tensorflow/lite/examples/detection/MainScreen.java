@@ -107,7 +107,7 @@ public class MainScreen extends AppCompatActivity {
                 if(!start){
                     tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
-                    ble.start("0");
+                    ble.start("2");
                     WiFi.start();
                 }
                 else {

@@ -80,14 +80,14 @@ public class user_orientation implements SensorEventListener{
             if (check_filter(filter, -1) && time_interval && !explain && ble.p_location()){
                 explain = true;
                 ble.set_explaining(explain);
-                tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_ADD, null);
-                //ble.speak_wi();
+                tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                ble.speak_wi();
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             time_interval = false;
-                            Thread.sleep(1000);
+                            Thread.sleep(4000);
                             time_interval = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
@@ -99,6 +99,7 @@ public class user_orientation implements SensorEventListener{
                 explain = false;
                 tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 ble.set_explaining(false);
+                ble.set_changable(true);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
