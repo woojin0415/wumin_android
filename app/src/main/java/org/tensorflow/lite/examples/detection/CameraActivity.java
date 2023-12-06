@@ -22,8 +22,10 @@ import android.app.Fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -33,8 +35,10 @@ import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.RemoteException;
@@ -54,6 +58,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -61,10 +66,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import org.tensorflow.lite.examples.detection.beacon.BeaconAdvertisingHandler;
@@ -118,16 +128,16 @@ public abstract class CameraActivity extends AppCompatActivity
   private LinearLayout gestureLayout;
   private BottomSheetBehavior<LinearLayout> sheetBehavior;
 
-  protected TextView frameValueTextView, findAreaTextView;
+  protected TextView findAreaTextView;
   protected ImageView bottomSheetArrowImageView;
-  protected ListView deviceView;
-  protected Button setUser;
-  protected ListView modelView;
+  //protected ListView deviceView;
+  protected Button setCapture;
+  //protected ListView modelView;
   /** Current indices of device and model. */
-  int currentDevice = -1;
-  int currentModel = -1;
+  //int currentDevice = -1;
+  //int currentModel = -1;
 
-  ArrayList<String> deviceStrings = new ArrayList<String>();
+  //ArrayList<String> deviceStrings = new ArrayList<String>();
 
 
   protected final long FINISH_INTERVAL_TIME = 2000;
@@ -167,9 +177,9 @@ public abstract class CameraActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setContentView(R.layout.menu_screen);
-    Toolbar toolbar = findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-    getSupportActionBar().setDisplayShowTitleEnabled(false);
+    //Toolbar toolbar = findViewById(R.id.toolbar);
+    //setSupportActionBar(toolbar);
+    //getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 
     if (hasPermission()) {
@@ -178,18 +188,19 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
-    setUser = findViewById(R.id.setUser);
-    deviceView = findViewById(R.id.device_list);
-    deviceStrings.add("CPU");
-    deviceStrings.add("GPU");
-    deviceStrings.add("NNAPI");
-    deviceView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-    ArrayAdapter<String> deviceAdapter =
-            new ArrayAdapter<>(
-                    CameraActivity.this , R.layout.deviceview_row, R.id.deviceview_row_text, deviceStrings);
-    deviceView.setAdapter(deviceAdapter);
-    deviceView.setItemChecked(defaultDeviceIndex, true);
-    currentDevice = defaultDeviceIndex;
+    setCapture = findViewById(R.id.capture);
+    //deviceView = findViewById(R.id.device_list);
+    //deviceStrings.add("CPU");
+    //deviceStrings.add("GPU");
+    //deviceStrings.add("NNAPI");
+    //deviceView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+    //ArrayAdapter<String> deviceAdapter =
+    //        new ArrayAdapter<>(
+    //                CameraActivity.this , R.layout.deviceview_row, R.id.deviceview_row_text, deviceStrings);
+    //deviceView.setAdapter(deviceAdapter);
+    //deviceView.setItemChecked(defaultDeviceIndex, true);
+    //currentDevice = defaultDeviceIndex;
+    /*
     deviceView.setOnItemClickListener(
             new AdapterView.OnItemClickListener() {
               @Override
@@ -197,22 +208,22 @@ public abstract class CameraActivity extends AppCompatActivity
                 updateActiveModel();
               }
             });
-
+    */
     bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
     gestureLayout = findViewById(R.id.gesture_layout);
     sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
     bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
-    modelView = findViewById((R.id.model_list));
+    //modelView = findViewById((R.id.model_list));
 
     modelStrings = getModelStrings(getAssets(), ASSET_PATH);
-    modelView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-    ArrayAdapter<String> modelAdapter =
-            new ArrayAdapter<>(
-                    CameraActivity.this , R.layout.listview_row, R.id.listview_row_text, modelStrings);
-    modelView.setAdapter(modelAdapter);
-    modelView.setItemChecked(defaultModelIndex, true);
-    currentModel = defaultModelIndex;
-    modelView.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id)->updateActiveModel());
+    //modelView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+    //ArrayAdapter<String> modelAdapter =
+    //        new ArrayAdapter<>(
+    //                CameraActivity.this , R.layout.listview_row, R.id.listview_row_text, modelStrings);
+    //modelView.setAdapter(modelAdapter);
+    //modelView.setItemChecked(defaultModelIndex, true);
+    //currentModel = defaultModelIndex;
+    //modelView.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id)->updateActiveModel());
 
     ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
     vto.addOnGlobalLayoutListener(
@@ -261,12 +272,9 @@ public abstract class CameraActivity extends AppCompatActivity
           public void onSlide(@NonNull View bottomSheet, float slideOffset) {}
         });
 
-    frameValueTextView = findViewById(R.id.frame_info);
     findAreaTextView = findViewById(R.id.detected_info);
 
-    setUser.setOnClickListener(this);
-
-
+    setCapture.setOnClickListener(this);
   }
 
   @Override
@@ -863,19 +871,85 @@ public abstract class CameraActivity extends AppCompatActivity
     }
   }
 
+  public  boolean isStoragePermissionGranted() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+              == PackageManager.PERMISSION_GRANTED) {
+        Log.v("Storage","Permission is granted");
+        return true;
+      } else {
+
+        Log.v("Storage","Permission is revoked");
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        return false;
+      }
+    }
+    else { //permission is automatically granted on sdk<23 upon installation
+      Log.v("Storage","Permission is granted");
+      return true;
+    }
+  }
 
   @Override
   public void onClick(View v) {
-    if (v.getId() == R.id.setUser) {
-      new Thread(() -> {
-        handler.post(new Runnable() {
-          @Override
-          public void run() {
 
-          }
-        });
-      }).start();
+    //View rootView = getWindow().getDecorView().getRootView();
+    View rootView = v.getRootView();
+    rootView.setDrawingCacheEnabled(true);
+
+    if (v.getId() == R.id.capture) {
+     // new Thread(() -> {
+       // handler.post(new Runnable() {
+         // @Override
+         // public void run() {
+              String folderName = "DCIM";
+              try{
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+                Date currentTime = new Date();
+                String dateString = formatter.format(currentTime);
+
+                File sdCardPath = getExternalFilesDir(null);
+                File dirs = new File(sdCardPath ,folderName);
+                if(isStoragePermissionGranted()) {
+                  if(sdCardPath.exists()) {
+                    if (!dirs.exists()) {
+                      if (!dirs.mkdirs()) {
+                        Log.e("Capture Save File Error", "Directory Not Created");
+                      } else {
+                        Log.e("Capture Save File", "Directory Create");
+                      }
+                    }
+                  }
+                }
+
+                Bitmap captureView = rootView.getDrawingCache();
+                FileOutputStream fos;
+                String saveFileName;
+                try{
+                  saveFileName = dateString + ".jpg";
+                  File file = new File(dirs, saveFileName);
+                  fos = new FileOutputStream(file);
+                  captureView.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                  if(file !=null) {
+                    //sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
+                    Toast.makeText(
+                                    CameraActivity.this,
+                                    saveFileName + " created",
+                                    Toast.LENGTH_SHORT)
+                            .show();
+                  }
+                  fos.close();
+                }catch(FileNotFoundException e){
+                  e.printStackTrace();
+                }
+              }catch (Exception e){
+                e.printStackTrace();
+              }
+        //  }
+        //});
+    //  }).start();
     }
+    v.setDrawingCacheEnabled(false);
   }
 
   //Beacon 거리 재기
@@ -892,11 +966,6 @@ public abstract class CameraActivity extends AppCompatActivity
 
   //private long QRReadTime = 0;
   //private final long QR_READ_INTERVAL_TIME = 60000; //1분 이내 QR Code 다시 못 읽게 하기 위해.
-
-  protected void showFrameInfo(String frameInfo) {
-    frameValueTextView.setText(frameInfo);
-  }
-
 
 
   protected void showFindInfo(String findInfo) {

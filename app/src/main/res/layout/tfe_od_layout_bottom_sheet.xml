@@ -35,34 +35,11 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/frame"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Frame"
-            android:textColor="@android:color/black" />
-
-        <TextView
-            android:id="@+id/frame_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="right"
-            android:text="640*480"
-            android:textColor="@android:color/black" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
             android:id="@+id/detectSize"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Detected Size"
+            android:text="Detected"
             android:textColor="@android:color/black" />
 
         <TextView
@@ -88,14 +65,6 @@
         android:orientation="horizontal"
         android:visibility="visible">
 
-        <EditText
-            android:id="@+id/user_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:inputType="text"
-            android:textColor="@android:color/black" />
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -106,10 +75,10 @@
             android:padding="4dp">
 
             <Button
-                android:id="@+id/setUser"
+                android:id="@+id/capture"
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
-                android:text="User Setting" />
+                android:text="Capture" />
         </LinearLayout>
 
 
@@ -121,7 +90,9 @@
         android:layout_marginTop="10dp"
         android:background="@android:color/darker_gray" />
 
-    <!-- TODO(b/112541284): Unhide when new NNAPI delegate is used. -->
+    <!-- TODO(b/112541284): Unhide when new NNAPI delegate is used.-->
+
+
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -80,8 +80,8 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
     private static final Logger LOGGER = new Logger();
 
-    private static final DetectorActivity.DetectorMode MODE = DetectorActivity.DetectorMode.TF_OD_API;
-    private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.3f;
+    //private static final DetectorActivity.DetectorMode MODE = DetectorActivity.DetectorMode.TF_OD_API;
+    public static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.3f;
     private static final boolean MAINTAIN_ASPECT = true;
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 640);
     private static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -209,7 +209,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
         tracker = new MultiBoxTracker(this);
 
-        final int modelIndex = modelView.getCheckedItemPosition();
+        final int modelIndex = 0; //modelView.getCheckedItemPosition();
         final String modelString = modelStrings.get(modelIndex);
 
         try {
@@ -262,17 +262,17 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
     protected void updateActiveModel() {
         // Get UI information before delegating to background
-        final int modelIndex = modelView.getCheckedItemPosition();
-        final int deviceIndex = deviceView.getCheckedItemPosition();
+        final int modelIndex = 0; //modelView.getCheckedItemPosition();
+        //final int deviceIndex = deviceView.getCheckedItemPosition();
         //String threads = threadsTextView.getText().toString().trim();
         final int numThreads = 1; //Integer.parseInt(threads);
 
         handler.post(() -> {
-            if (modelIndex == currentModel && deviceIndex == currentDevice) {
-                return;
-            }
-            currentModel = modelIndex;
-            currentDevice = deviceIndex;
+           // if (modelIndex == currentModel/* && deviceIndex == currentDevice*/) {
+           //     return;
+           // }
+            //currentModel = modelIndex;
+            //currentDevice = deviceIndex;
 
 
             // Disable classifier while updating
@@ -283,9 +283,9 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
             // Lookup names of parameters.
             String modelString = modelStrings.get(modelIndex);
-            String device = deviceStrings.get(deviceIndex);
+            //String device = deviceStrings.get(deviceIndex);
 
-            LOGGER.i("Changing model to " + modelString + " device " + device);
+            //LOGGER.i("Changing model to " + modelString + " device " + device);
 
             // Try to load model.
 
@@ -307,13 +307,13 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
             }
 
 
-            if (device.equals("CPU")) {
+            //if (device.equals("CPU")) {
                 detector.useCPU();
-            } else if (device.equals("GPU")) {
-                detector.useGpu();
-            } else if (device.equals("NNAPI")) {
-                detector.useNNAPI();
-            }
+            //} else if (device.equals("GPU")) {
+            //    detector.useGpu();
+           // } else if (device.equals("NNAPI")) {
+            //    detector.useNNAPI();
+           // }
             detector.setNumThreads(numThreads);
 
             int cropSize = detector.getInputSize();
@@ -427,11 +427,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                         paint.setStrokeWidth(2.0f);
 
                         float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-                        switch (MODE) {
-                            case TF_OD_API:
+                        //switch (MODE) {
+                        //    case TF_OD_API:
                                 minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-                                break;
-                        }
+                       //         break;
+                       // }
 
                         final List<Classifier.Recognition> mappedRecognitions =
                                 new LinkedList<Classifier.Recognition>();
@@ -453,9 +453,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                             Log.e("CHECK", "getConfidence: "  +Float.toString(result.getConfidence()));
                             if (classIndex <= 1 && result.getConfidence() > 0.6) {  //신뢰도 0.6 이상만.
                                 RectF location = result.getLocation();
+
                                 if (location != null && result.getConfidence() >= minimumConfidence) {
                                     canvas.drawRect(location, paint);
-                                    findInfo = location.toString();
+                                    findInfo = location.toString() +" : "+ Float.toString(((location.right - location.left)
+                                            * (location.bottom - location.top)));
                                     cropToFrameTransform.mapRect(location);
                                     result.setLocation(location);
                                     mappedRecognitions.add(result);
@@ -484,7 +486,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                 new Runnable() {
                                     @Override
                                     public void run() {
-                                        showFrameInfo(previewWidth + "x" + previewHeight);
+                                        //showFrameInfo(previewWidth + "x" + previewHeight);
                                         //showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
                                         showFindInfo(findInfo);
                                     }
