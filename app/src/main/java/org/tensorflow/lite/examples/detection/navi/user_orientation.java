@@ -8,27 +8,33 @@ import android.hardware.SensorManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import java.util.Arrays;
+
 public class user_orientation implements SensorEventListener{
     private SensorManager sm;
     private Sensor gyro;
     private Sensor acc;
-    private Sensor grv;
+    private Sensor rotation;
     private float[] gyro_value = new float[3];
     private float[] acc_values = new float[3];
+    private float[] rotation_values = new float[16];
+    private float[] orientation_values = new float[3];
+    private int ori_init_count = 0;
+    private double[] ori_init_filter = new double[100];
+    private double calib_ori;
+    private double prv_ori;
 
     private int filter_length = 10;
     private float [] filter = new float[filter_length];
     private float [] moving_check_filter = new float[filter_length];
     private int count;
-    private int mcf_count;
-    private boolean start = false;
     private Bluetooth ble;
     private boolean time_interval;
-    private boolean mcf_time_interval;
-    private boolean explaining;
 
     //유저가 작품 위치에 있는 지 확인
     private boolean explain;
+    private boolean explain_ori = false;
+    private boolean start_ori = false;
 
 
 
@@ -36,20 +42,20 @@ public class user_orientation implements SensorEventListener{
 
 
     private TextToSpeech tts;
-    public user_orientation(SensorManager sm, Sensor gyro, Sensor acc, TextToSpeech tts){
+    public user_orientation(SensorManager sm, Sensor gyro, Sensor acc, Sensor rotation, TextToSpeech tts){
         this.sm = sm;
         this.gyro = gyro;
         this.acc = acc;
+        this.rotation = rotation;
         this.tts =tts;
         this.explain = false;
         this.time_interval = true;
-        this.mcf_time_interval = true;
         this.count = 0;
-        this.mcf_count = 0;
 
 
         sm.registerListener((SensorEventListener) this, gyro, SensorManager.SENSOR_DELAY_UI);
         sm.registerListener((SensorEventListener) this, acc, SensorManager.SENSOR_DELAY_UI);
+        sm.registerListener((SensorEventListener) this, rotation, SensorManager.SENSOR_DELAY_UI);
         for(int i = 0; i < filter_length; i++) {
             filter[i] = 0;
             moving_check_filter[i] = 0;
@@ -115,8 +121,60 @@ public class user_orientation implements SensorEventListener{
             }
         }
 
+        if(event.sensor == rotation && start_ori){
+            SensorManager.getRotationMatrixFromVector(rotation_values, event.values);
+            SensorManager.getOrientation(rotation_values, orientation_values);
+
+            double azimuth = (Math.toDegrees(orientation_values[0]) + 360) % 360;
+
+            if (ori_init_count < 100){
+                ori_init_filter[ori_init_count] = azimuth;
+                ori_init_count++;
+            }
+            else if (ori_init_count == 100){
+                calib_ori = orientation_filter_median(ori_init_filter);
+                ori_init_count++;
+                tts.speak("방향 초기화 완료", TextToSpeech.QUEUE_FLUSH, null);
+            }
+            else {
+                azimuth = azimuth - calib_ori;
+                if(azimuth < 0)
+                    azimuth += 360;
+                if ((azimuth >= 260 && azimuth <= 280) && !explain_ori && ble.p_location()) {
+                    tts.speak("그림이 있음", TextToSpeech.QUEUE_FLUSH, null);
+                    Log.e("ori", String.valueOf(azimuth));
+                    explain_ori = true;
+                    //ble.set_explaining(true);
+                    //tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                    //ble.speak_wi();
+
+                } else if ((azimuth >= 340 || azimuth <= 20) && explain_ori&& ble.p_location()){
+                    tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
+                    Log.e("ori", String.valueOf(azimuth));
+                    explain_ori = false;
+                    //tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    //ble.set_explaining(false);
+                    //ble.set_changable(true);
+                }
+                else if (azimuth >= 160 && azimuth <= 200 ) {
+                    //tts.speak("방향 변환", TextToSpeech.QUEUE_ADD, null);
+                    //Log.e("ori", String.valueOf(azimuth));
+                    //ble.set_direction(false);
+                }
+            }
+        }
 
 
+    }
+
+    public void set_startori(boolean tf){
+        if(!start_ori && tf)
+            ori_init_count = 0;
+        this.start_ori = tf;
+    }
+
+    public void change_cali_AtC(double value){
+        this.calib_ori += value;
     }
 
 
@@ -147,15 +205,8 @@ public class user_orientation implements SensorEventListener{
         return false;
    }
 
-    boolean mcf_check_filter(float []arr){
-        int num_of_moving_data = 0;
-        for(int i =0; i<arr.length; i++){
-            if (Math.abs(arr[i]) < 0.4)
-                num_of_moving_data +=1;
-        }
-        if(num_of_moving_data >= arr.length-3)
-            return true;
-        else
-            return false;
-    }
+   double orientation_filter_median(double []arr){
+        Arrays.sort(arr);
+        return arr[ori_init_count/2];
+   }
 }
