@@ -196,10 +196,6 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 }
             }
         });
-
-
-
-
     }
 
     @Override
