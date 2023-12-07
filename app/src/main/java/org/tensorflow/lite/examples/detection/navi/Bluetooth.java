@@ -57,7 +57,7 @@ public class Bluetooth {
 
     //그림이 있는 map index 배열
     int[] p_loc_1 = new int[]{0, 1, 4, 8, 10};
-    int[] corner_1 = new int[]{2, 7};
+    int[] corner_1 = new int[]{2, 7, 10};
     int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
     int[] p_loc_2 = new int[]{2, 6, 7};
@@ -560,14 +560,17 @@ public class Bluetooth {
         if(section == "0" && currentSector == 0) return false;
         return list_search(p_loc[Integer.valueOf(section)], currentSector);
     }
+    public boolean corner_location(){
+        return list_search(corner[Integer.valueOf(section)], currentSector);
+    }
 
+    public void set_changable(boolean tf){
+        this.changable = tf;
+    }
     public void set_direction(boolean tf){
         this.direction = tf;
     }
     public void set_explaining(boolean tf){ this.explaining = tf;}
-    public void set_changable(boolean tf){
-        this.changable = tf;
-    }
 
     public boolean check_lq(int[] arr){
         int s = arr[0];

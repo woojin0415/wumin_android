@@ -102,14 +102,13 @@ public class user_orientation implements SensorEventListener{
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor == gyro && false) {
+        if (event.sensor == gyro) {
             System.arraycopy(event.values, 0, gyro_value, 0, event.values.length);
             //Log.e("gyro",String.valueOf(gyro_value[0]) + " / " + String.valueOf(gyro_value[1]) + " / " + String.valueOf(gyro_value[2]) + " / " );
             filter[count%filter_length] = gyro_value[1];
             count++;
             if (check_filter(filter, -1) && time_interval && !explain && ble.p_location()){
                 explain = true;
-                ble.set_explaining(explain);
                 tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                 ble.speak_wi();
                 new Thread(new Runnable() {
@@ -118,24 +117,6 @@ public class user_orientation implements SensorEventListener{
                         try {
                             time_interval = false;
                             Thread.sleep(4000);
-                            time_interval = true;
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).start();
-            }
-            else if (check_filter(filter, 1)&& time_interval && explain && ble.p_location()){
-                explain = false;
-                tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
-                ble.set_explaining(false);
-                ble.set_changable(true);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            time_interval = false;
-                            Thread.sleep(1000);
                             time_interval = true;
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
@@ -181,21 +162,21 @@ public class user_orientation implements SensorEventListener{
                 azimuth = azimuth - calib_ori;
                 if(azimuth < 0)
                     azimuth += 360;
-                if ((azimuth >= 260 && azimuth <= 280) && !explain_ori && ble.p_location()) {
-                    tts.speak("그림이 있음", TextToSpeech.QUEUE_FLUSH, null);
-                    Log.e("ori", String.valueOf(azimuth));
+                if ((azimuth >= 260 && azimuth <= 280) && !explain_ori && ble.p_location() && (ble.p_location() != ble.corner_location())) {
+                    //tts.speak("그림이 있음", TextToSpeech.QUEUE_FLUSH, null);
+                    //Log.e("ori", String.valueOf(azimuth));
                     explain_ori = true;
-                    //ble.set_explaining(true);
-                    //tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
-                    //ble.speak_wi();
+                    ble.set_explaining(true);
+                    tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                    ble.speak_wi();
 
                 } else if ((azimuth >= 340 || azimuth <= 20) && explain_ori&& ble.p_location()){
-                    tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
-                    Log.e("ori", String.valueOf(azimuth));
+                    //tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
+                    //Log.e("ori", String.valueOf(azimuth));
                     explain_ori = false;
-                    //tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
-                    //ble.set_explaining(false);
-                    //ble.set_changable(true);
+                    tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    ble.set_explaining(false);
+                    ble.set_changable(true);
                 }
                 else if (azimuth >= 160 && azimuth <= 200 ) {
                     //tts.speak("방향 변환", TextToSpeech.QUEUE_ADD, null);
