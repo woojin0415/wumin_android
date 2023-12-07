@@ -115,7 +115,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
     protected String title_Start_String = "";
     protected String title_End_String = "";
 
-    protected String detect_person_String = "";
+    protected String detect_person_String = "사람이 전방에 있습니다.";
     protected Vibrator vibrator;
     protected ArrayList<ArrayList> QRData;
 
@@ -133,6 +133,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         click = false;
 
 
+        /*
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -140,7 +141,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
             }
         });
         tts.setPitch(1.0f);
-
+        */
 
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -351,12 +352,14 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         // 비콘 정보를 받아 처리하는 로직을 여기에 구현
 
         double distance = calculateDistance(beacon.getTxPower(), beacon.getRssi());
-
+        /* 아직은 필요가 없음..
         Toast.makeText(
                         this,
                         beacon.getId1() + ":" + Double.toString(distance),
                         Toast.LENGTH_SHORT)
                 .show();
+
+         */
     }
 
     private String getJsonString()
@@ -465,7 +468,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                     Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
                                     if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
                                         PersonDetectTime = tempTime;
-                                        tts.speak(detect_person_String, TextToSpeech.QUEUE_FLUSH, null, null);
+                                        tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
                                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                             VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
                                             vibrator.vibrate(vibrationEffect);
