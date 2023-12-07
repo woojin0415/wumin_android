@@ -375,9 +375,12 @@ public class Bluetooth {
         // user_ori.sector_change(maps[map_index]);
 
         String [] drec = new String[2];
+        double[] cali = new double[2];
         if (direction == true){
             drec[0] = "3시 방향";
             drec[1] = "9시 방향";
+            cali[0] = 90;
+            cali[1] = -90;
         }
 
         //그림이 있는 곳에서 없는 곳으로 이동 시
@@ -394,15 +397,18 @@ public class Bluetooth {
             if (map_index != currentSector) {
                 if ((section == "1" && map_index == 1)){
                     tts.speak("막다른 길 입니다. "+drec[1] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    user_ori.change_cali_AtC(cali[1]);
                 }
                 else if (section == "2" && map_index == 8){
                     tts.speak("막다른 길 입니다. "+ "1시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else if (section == "2" && map_index == 9){
-                    tts.speak("9시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak(drec[1] + "으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    user_ori.change_cali_AtC(cali[1]);
                 }
                 else {
                     tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                    user_ori.change_cali_AtC(cali[0]);
                 }
 
             }
@@ -451,6 +457,7 @@ public class Bluetooth {
                 if (section == "0") {
                     tts.speak("해당 전시관이 끝났습니다", TextToSpeech.QUEUE_FLUSH, null);
                     tts.speak("9시 방향으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
+                    user_ori.change_cali_AtC(cali[1]);
                 }
                 if(section == "1"){
                     if(currentSector == 4){

@@ -67,7 +67,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
     private WifiManager wfm;
     private Sensor gyro;
     private Sensor mag;
-    private Sensor grv;
+    private Sensor rotation;
     private user_orientation user_ori;
     private boolean start = false;
     Bluetooth ble;
@@ -145,13 +145,13 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        //grv = sm.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        rotation = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         mag = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifi WiFi = new wifi(wfm, this);
 
 
-        user_ori = new user_orientation(sm, gyro, mag, tts);
+        user_ori = new user_orientation(sm, gyro, mag, rotation, tts);
 
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -187,10 +187,12 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                     start = true;
                     ble.start("2");
                     WiFi.start();
+                    user_ori.set_startori(true);
                 }
                 else {
                     start = false;
                     ble.stop();
+                    user_ori.set_startori(false);
                 }
             }
         });
