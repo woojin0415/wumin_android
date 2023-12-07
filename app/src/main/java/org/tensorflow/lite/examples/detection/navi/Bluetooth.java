@@ -12,6 +12,10 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.tensorflow.lite.examples.detection.storage.BLEStorage;
+import org.tensorflow.lite.examples.detection.storage.StoreManagement;
+
+import java.io.IOException;
 import java.util.Arrays;
 
 import retrofit2.Call;
@@ -90,10 +94,13 @@ public class Bluetooth {
 
     //작품 설명중이면 T 아니면 F
     private boolean explaining;
+    private BLEStorage[] ble_storage;
+    private StoreManagement store_m;
+    private int ble_storage_count;
 
 
 
-    public Bluetooth(BluetoothAdapter adapter, user_orientation user_ori, TextToSpeech tts){
+    public Bluetooth(BluetoothAdapter adapter, user_orientation user_ori, TextToSpeech tts, StoreManagement store_m){
         this.adapter = adapter;
         scanner = adapter.getBluetoothLeScanner();
         this.rssi_value = new int[6][collect_num];
@@ -130,6 +137,10 @@ public class Bluetooth {
         sections[1] = sector2;
         sections[2] = sector3;
         wi = new work_information(3, 11);
+
+        ble_storage = new BLEStorage[10000];
+
+        this.store_m = store_m;
 
         set_wi();
     }
@@ -176,6 +187,9 @@ public class Bluetooth {
 
         send_num = 0;
 
+        store_m.reset_ble(ble_storage);
+        ble_storage_count = 0;
+
         scan();
         Log.e("BLE", "시작");
     }
@@ -193,12 +207,13 @@ public class Bluetooth {
         return changable;
     }
 
-    public void stop() {
+    public void stop() throws IOException {
         stopscan();
         for (int i = 0; i < n_b.length; i++) {
             n_b[i] = 0;
             check[i] = false;
         }
+        store_m.ble_store(ble_storage);
     }
 
 
@@ -301,6 +316,8 @@ public class Bluetooth {
         }
         Log.e("Comm", "전송");
 
+        int[] send_data = new int[]{Integer.valueOf(r1), Integer.valueOf(r2), Integer.valueOf(r3),Integer.valueOf(r4),Integer.valueOf(r5),Integer.valueOf(r6),};
+
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
@@ -310,6 +327,10 @@ public class Bluetooth {
                     return;
                 }
                 int map_index = Integer.valueOf(response_);
+
+                long time = System.currentTimeMillis();
+                BLEStorage ble_data = new BLEStorage();
+                ble_data.set_values(time, section, response_, send_data);
 
 
                 if(section=="2" && currentSector >=8){

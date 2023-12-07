@@ -177,6 +177,7 @@ public abstract class CameraActivity extends AppCompatActivity
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setContentView(R.layout.menu_screen);
+
     //Toolbar toolbar = findViewById(R.id.toolbar);
     //setSupportActionBar(toolbar);
     //getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -275,6 +276,9 @@ public abstract class CameraActivity extends AppCompatActivity
     findAreaTextView = findViewById(R.id.detected_info);
 
     setCapture.setOnClickListener(this);
+
+    initializeTTS();
+
   }
 
   @Override

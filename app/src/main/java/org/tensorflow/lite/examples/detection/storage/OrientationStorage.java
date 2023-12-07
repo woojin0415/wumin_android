@@ -10,7 +10,7 @@ public class OrientationStorage {
     private String sector;
     private double azimuth;
 
-    OrientationStorage() {}
+    public OrientationStorage() {}
     public long get_time(){
         return this.time;
     }
@@ -20,7 +20,7 @@ public class OrientationStorage {
     public double get_azimuth(){
         return this.azimuth;
     }
-    public void setValue(long time, double azimuth, String sector){
+    public void set_values(long time, double azimuth, String sector){
         this.time = time;
         this.azimuth = azimuth;
         this.sector = sector;

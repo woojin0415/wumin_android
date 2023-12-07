@@ -8,6 +8,10 @@ import android.hardware.SensorManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import org.tensorflow.lite.examples.detection.storage.OrientationStorage;
+import org.tensorflow.lite.examples.detection.storage.StoreManagement;
+
+import java.io.IOException;
 import java.util.Arrays;
 
 public class user_orientation implements SensorEventListener{
@@ -20,7 +24,7 @@ public class user_orientation implements SensorEventListener{
     private float[] rotation_values = new float[16];
     private float[] orientation_values = new float[3];
     private int ori_init_count = 0;
-    private double[] ori_init_filter = new double[100];
+    private double[] ori_init_filter = new double[30];
     private double calib_ori;
     private double prv_ori;
 
@@ -34,7 +38,9 @@ public class user_orientation implements SensorEventListener{
     //유저가 작품 위치에 있는 지 확인
     private boolean explain;
     private boolean explain_ori = false;
-    private boolean start_ori = false;
+    private OrientationStorage[] ori_storage;
+    private int ori_storage_count;
+    private StoreManagement store_m;
 
 
 
@@ -42,7 +48,7 @@ public class user_orientation implements SensorEventListener{
 
 
     private TextToSpeech tts;
-    public user_orientation(SensorManager sm, Sensor gyro, Sensor acc, Sensor rotation, TextToSpeech tts){
+    public user_orientation(SensorManager sm, Sensor gyro, Sensor acc, Sensor rotation, TextToSpeech tts, StoreManagement store_m){
         this.sm = sm;
         this.gyro = gyro;
         this.acc = acc;
@@ -53,16 +59,34 @@ public class user_orientation implements SensorEventListener{
         this.count = 0;
 
 
-        sm.registerListener((SensorEventListener) this, gyro, SensorManager.SENSOR_DELAY_UI);
-        sm.registerListener((SensorEventListener) this, acc, SensorManager.SENSOR_DELAY_UI);
-        sm.registerListener((SensorEventListener) this, rotation, SensorManager.SENSOR_DELAY_UI);
+
         for(int i = 0; i < filter_length; i++) {
             filter[i] = 0;
             moving_check_filter[i] = 0;
         }
 
+        ori_storage = new OrientationStorage[10000];
+        this.store_m = store_m;
 
 
+
+
+    }
+
+    public void start(){
+        sm.registerListener((SensorEventListener) this, gyro, SensorManager.SENSOR_DELAY_UI);
+        sm.registerListener((SensorEventListener) this, acc, SensorManager.SENSOR_DELAY_UI);
+        sm.registerListener((SensorEventListener) this, rotation, SensorManager.SENSOR_DELAY_UI);
+        ori_storage_count = 0;
+        ori_init_count = 0;
+        store_m.reset_ori(ori_storage);
+    }
+
+    public void stop() throws IOException {
+        sm.unregisterListener((SensorEventListener) this, gyro);
+        sm.unregisterListener((SensorEventListener) this, acc);
+        sm.unregisterListener((SensorEventListener) this, rotation);
+        store_m.ori_store(ori_storage);
     }
     public void set_ble(Bluetooth ble){
         this.ble = ble;
@@ -78,7 +102,7 @@ public class user_orientation implements SensorEventListener{
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.sensor == gyro) {
+        if (event.sensor == gyro && false) {
             System.arraycopy(event.values, 0, gyro_value, 0, event.values.length);
             //Log.e("gyro",String.valueOf(gyro_value[0]) + " / " + String.valueOf(gyro_value[1]) + " / " + String.valueOf(gyro_value[2]) + " / " );
             filter[count%filter_length] = gyro_value[1];
@@ -121,11 +145,28 @@ public class user_orientation implements SensorEventListener{
             }
         }
 
-        if(event.sensor == rotation && start_ori){
+        if(event.sensor == rotation){
             SensorManager.getRotationMatrixFromVector(rotation_values, event.values);
             SensorManager.getOrientation(rotation_values, orientation_values);
 
+
+            long time = System.currentTimeMillis();
+            String sector = String.valueOf(ble.getsection());
             double azimuth = (Math.toDegrees(orientation_values[0]) + 360) % 360;
+
+            OrientationStorage ori_data = new OrientationStorage();
+            ori_data.set_values(time,azimuth,sector);
+            ori_storage[ori_storage_count++] = ori_data;
+
+            if(ori_storage_count == ori_storage.length){
+                try {
+                    store_m.ori_store(ori_storage);
+                    store_m.reset_ori(ori_storage);
+                    ori_storage_count = 0;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
             if (ori_init_count < 100){
                 ori_init_filter[ori_init_count] = azimuth;
@@ -167,11 +208,6 @@ public class user_orientation implements SensorEventListener{
 
     }
 
-    public void set_startori(boolean tf){
-        if(!start_ori && tf)
-            ori_init_count = 0;
-        this.start_ori = tf;
-    }
 
     public void change_cali_AtC(double value){
         this.calib_ori += value;

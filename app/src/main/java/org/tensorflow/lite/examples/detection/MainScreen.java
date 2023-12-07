@@ -6,6 +6,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -21,6 +22,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.os.storage.StorageManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Size;
@@ -32,6 +34,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.altbeacon.beacon.Beacon;
 import org.json.JSONArray;
@@ -47,6 +51,10 @@ import org.tensorflow.lite.examples.detection.CameraActivity;
 import org.tensorflow.lite.examples.detection.navi.Bluetooth;
 import org.tensorflow.lite.examples.detection.navi.user_orientation;
 import org.tensorflow.lite.examples.detection.navi.wifi;
+import org.tensorflow.lite.examples.detection.storage.BLEStorage;
+import org.tensorflow.lite.examples.detection.storage.DetectorStorage;
+import org.tensorflow.lite.examples.detection.storage.OrientationStorage;
+import org.tensorflow.lite.examples.detection.storage.StoreManagement;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.DetectorFactory;
 import org.tensorflow.lite.examples.detection.tflite.YoloV5Classifier;
@@ -75,6 +83,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
 
     private boolean click;
+    private boolean detect_start = false;
 
 
 
@@ -120,6 +129,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
     protected Vibrator vibrator;
     protected ArrayList<ArrayList> QRData;
 
+    //Storage
+    private DetectorStorage[] detect_storage;
+    private int detector_storage_count;
+    private StoreManagement store_m;
+
 
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -131,18 +145,16 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         params.height = width;
         Log.e("Layout", String.valueOf(width) + "/" + String.valueOf(params.height));
         b_layout.setLayoutParams(params);
+
+
+        try {
+            store_m = new StoreManagement();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
         click = false;
-
-
-        /*
-        tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                tts.setLanguage(Locale.KOREAN);
-            }
-        });
-        tts.setPitch(1.0f);
-        */
 
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyro = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -152,11 +164,16 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         wifi WiFi = new wifi(wfm, this);
 
 
-        user_ori = new user_orientation(sm, gyro, mag, rotation, tts);
+        user_ori = new user_orientation(sm, gyro, mag, rotation, tts, store_m);
 
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        ble = new Bluetooth(adapter, user_ori, tts);
+        ble = new Bluetooth(adapter, user_ori, tts, store_m);
+
+
+        detect_storage = new DetectorStorage[10000];
+
+
 
         new Thread(new Runnable() {
             @Override
@@ -169,7 +186,6 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                             bt_main.setRotation(-i);
                             Thread.sleep(10);
                             i++;
-
                         }
 
                     }
@@ -186,14 +202,25 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 if(!start){
                     tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
+                    detect_start = true;
                     ble.start("0");
                     WiFi.start();
-                    user_ori.set_startori(true);
+                    user_ori.start();
+
+                    store_m.reset_detector(detect_storage);
+                    detector_storage_count = 0;
+
                 }
                 else {
                     start = false;
-                    ble.stop();
-                    user_ori.set_startori(false);
+                    detect_start = false;
+                    try {
+                        ble.stop();
+                        user_ori.stop();
+                        store_m.detector_store(detect_storage);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });
@@ -414,90 +441,112 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 new Runnable() {
                     @Override
                     public void run() {
-                        LOGGER.i("Running detection on image " + currTimestamp);
-                        final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
-                        lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                        if (detect_start) {
+                            LOGGER.i("Running detection on image " + currTimestamp);
+                            final long startTime = SystemClock.uptimeMillis();
+                            final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+                            lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-                        Log.e("CHECK", "run: " + results.size());
+                            Log.e("CHECK", "run: " + results.size());
 
-                        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-                        final Canvas canvas = new Canvas(cropCopyBitmap);
-                        final Paint paint = new Paint();
-                        paint.setColor(Color.RED);
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(2.0f);
+                            cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+                            final Canvas canvas = new Canvas(cropCopyBitmap);
+                            final Paint paint = new Paint();
+                            paint.setColor(Color.RED);
+                            paint.setStyle(Paint.Style.STROKE);
+                            paint.setStrokeWidth(2.0f);
 
-                        float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-                        //switch (MODE) {
-                        //    case TF_OD_API:
-                                minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-                       //         break;
-                       // }
+                            float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+                            //switch (MODE) {
+                            //    case TF_OD_API:
+                            minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+                            //         break;
+                            // }
 
-                        final List<Classifier.Recognition> mappedRecognitions =
-                                new LinkedList<Classifier.Recognition>();
+                            final List<Classifier.Recognition> mappedRecognitions =
+                                    new LinkedList<Classifier.Recognition>();
 
-                        int[] maxSize = {0, 0};
-                        int size, r = 0;
-                        for (Classifier.Recognition result : results) {
-                            RectF location = result.getLocation();
-                            size = (int)(location.height() * location.width());
-                            if (size > maxSize[1]) {
-                                maxSize[0] = r;
-                                maxSize[1] = size;
-                            }
-                            r++;
-                        }
-                        if (results.size() > 0) {
-                            Classifier.Recognition result = results.get(maxSize[0]);
-                            int classIndex = result.getDetectedClass();
-                            Log.e("CHECK", "getConfidence: "  +Float.toString(result.getConfidence()));
-                            if (classIndex <= 1 && result.getConfidence() > 0.6) {  //신뢰도 0.6 이상만.
+                            int[] maxSize = {0, 0};
+                            int size, r = 0;
+                            for (Classifier.Recognition result : results) {
                                 RectF location = result.getLocation();
+                                size = (int) (location.height() * location.width());
+                                if (size > maxSize[1]) {
+                                    maxSize[0] = r;
+                                    maxSize[1] = size;
+                                }
+                                r++;
+                            }
+                            if (results.size() > 0) {
+                                Classifier.Recognition result = results.get(maxSize[0]);
+                                int classIndex = result.getDetectedClass();
+                                Log.e("CHECK", "getConfidence: " + Float.toString(result.getConfidence()));
+                                if (classIndex <= 1 && result.getConfidence() > 0.6) {  //신뢰도 0.6 이상만.
+                                    RectF location = result.getLocation();
 
-                                if (location != null && result.getConfidence() >= minimumConfidence) {
-                                    if (((location.right - location.left) * (location.bottom - location.top)) > PERSON_DETECT_HEAD_SIZE_2M) {
-                                        //canvas.drawRect(location, paint);
-                                        findInfo = location.toString() + " : " + Float.toString(((location.right - location.left)
-                                                * (location.bottom - location.top)));
-                                        cropToFrameTransform.mapRect(location);
-                                        result.setLocation(location);
-                                        mappedRecognitions.add(result);
-                                        Log.e("CHECK", "isDetectPerson: " + Long.toString(tempTime - PersonDetectTime));
-                                        Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
-                                        if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
-                                            PersonDetectTime = tempTime;
-                                            tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
-                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                                VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
-                                                vibrator.vibrate(vibrationEffect);
+                                    float[] location_data = new float[]{location.right, location.left, location.top, location.bottom};
+                                    long detect_time = System.currentTimeMillis();
+                                    String detect = "";
+
+                                    if (location != null && result.getConfidence() >= minimumConfidence) {
+                                        detect = "T";
+                                        if (((location.right - location.left) * (location.bottom - location.top)) > PERSON_DETECT_HEAD_SIZE_2M) {
+                                            //canvas.drawRect(location, paint);
+                                            findInfo = location.toString() + " : " + Float.toString(((location.right - location.left)
+                                                    * (location.bottom - location.top)));
+                                            cropToFrameTransform.mapRect(location);
+                                            result.setLocation(location);
+                                            mappedRecognitions.add(result);
+                                            Log.e("CHECK", "isDetectPerson: " + Long.toString(tempTime - PersonDetectTime));
+                                            Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
+                                            if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
+                                                PersonDetectTime = tempTime;
+                                                tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
+                                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                                    VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
+                                                    vibrator.vibrate(vibrationEffect);
+                                                }
+
                                             }
-
+                                        } else {
+                                            detect = "F";
+                                            findInfo = "No " + location.toString() + " : " + Float.toString(((location.right - location.left)
+                                                    * (location.bottom - location.top)));
                                         }
-                                    }
-                                    else{
-                                        findInfo = "No " + location.toString() + " : " + Float.toString(((location.right - location.left)
-                                                * (location.bottom - location.top)));
+                                        DetectorStorage detector_dataset = new DetectorStorage();
+                                        detector_dataset.set_values(detect_time, detect, location_data);
+                                        detect_storage[detector_storage_count++] = detector_dataset;
+
+                                        if (detector_storage_count == detect_storage.length) {
+                                            try {
+                                                store_m.detector_store(detect_storage);
+                                                store_m.reset_detector(detect_storage);
+                                                detector_storage_count = 0;
+                                            } catch (IOException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }
+
+
                                     }
                                 }
                             }
+
+                            tracker.trackResults(mappedRecognitions, currTimestamp);
+                            trackingOverlay.postInvalidate();
+
+                            computingDetection = false;
+
+                            runOnUiThread(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            //showFrameInfo(previewWidth + "x" + previewHeight);
+                                            //showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
+                                            showFindInfo(findInfo);
+                                        }
+                                    });
                         }
-
-                        tracker.trackResults(mappedRecognitions, currTimestamp);
-                        trackingOverlay.postInvalidate();
-
-                        computingDetection = false;
-
-                        runOnUiThread(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        //showFrameInfo(previewWidth + "x" + previewHeight);
-                                        //showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
-                                        showFindInfo(findInfo);
-                                    }
-                                });
                     }
                 });
     }
