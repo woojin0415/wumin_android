@@ -114,6 +114,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
     protected int[] amplitudes={0,100,0,200};
     protected String title_Start_String = "";
     protected String title_End_String = "";
+    protected final long PERSON_DETECT_HEAD_SIZE_2M = 6000;
 
     protected String detect_person_String = "사람이 전방에 있습니다.";
     protected Vibrator vibrator;
@@ -456,26 +457,31 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                 RectF location = result.getLocation();
 
                                 if (location != null && result.getConfidence() >= minimumConfidence) {
-                                    canvas.drawRect(location, paint);
-                                    findInfo = location.toString() +" : "+ Float.toString(((location.right - location.left)
-                                            * (location.bottom - location.top)));
-                                    cropToFrameTransform.mapRect(location);
-                                    result.setLocation(location);
-                                    mappedRecognitions.add(result);
-                                    Log.e("CHECK", "isDetectPerson: "  +Long.toString(tempTime - PersonDetectTime));
-                                    Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
-                                    if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
-                                        PersonDetectTime = tempTime;
-                                        tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
-                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                            VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
-                                            vibrator.vibrate(vibrationEffect);
-                                        }
+                                    if (((location.right - location.left) * (location.bottom - location.top)) > PERSON_DETECT_HEAD_SIZE_2M) {
+                                        //canvas.drawRect(location, paint);
+                                        findInfo = location.toString() + " : " + Float.toString(((location.right - location.left)
+                                                * (location.bottom - location.top)));
+                                        cropToFrameTransform.mapRect(location);
+                                        result.setLocation(location);
+                                        mappedRecognitions.add(result);
+                                        Log.e("CHECK", "isDetectPerson: " + Long.toString(tempTime - PersonDetectTime));
+                                        Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
+                                        if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
+                                            PersonDetectTime = tempTime;
+                                            tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
+                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                                VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
+                                                vibrator.vibrate(vibrationEffect);
+                                            }
 
+                                        }
+                                    }
+                                    else{
+                                        findInfo = "No " + location.toString() + " : " + Float.toString(((location.right - location.left)
+                                                * (location.bottom - location.top)));
                                     }
                                 }
                             }
-
                         }
 
                         tracker.trackResults(mappedRecognitions, currTimestamp);
