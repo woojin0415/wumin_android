@@ -186,7 +186,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 if(!start){
                     tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
-                    ble.start("2");
+                    ble.start("0");
                     WiFi.start();
                     user_ori.set_startori(true);
                 }
