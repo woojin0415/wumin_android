@@ -47,7 +47,7 @@ public class Bluetooth {
     //median filter에 사용할 rssi 값 개수
     private int collect_num = 6;
     //이전에 분류된 구역 번호
-    private double currentSector = -1;
+    private double currentSector = 0;
 
     //몇 번째 보내는 메시지인지 확인
     private int send_num;
@@ -57,7 +57,7 @@ public class Bluetooth {
 
     //그림이 있는 map index 배열
     int[] p_loc_1 = new int[]{0, 1, 4, 8, 10};
-    int[] corner_1 = new int[]{2, 7, 10};
+    int[] corner_1 = new int[]{2, 7};
     int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
     int[] p_loc_2 = new int[]{2, 6, 7};
@@ -152,7 +152,7 @@ public class Bluetooth {
                 "《화성 and 지구에서》는 제21회 우민미술상을 수상한 김지은 작가의 개인전입니다. 김지은 작가는 현대사회의 도시 개발 속에서 현대인의 삶의 공간이 고유한 장소성을 잃어버리고 획일화·상품화되고 있음에 주목합니다. 이번 전시는 김지은 작가가 2017년 경기도 화성시 봉담지구로 이주한 뒤, 서울과 화성을 오가거나 택지지구에서 생활하면서 낯선 풍경을 접하면서 시작한 작업을 소개합니다. 작가는 오늘의 주거환경을 어떤 시선으로 바라보고 있는지 만나보겠습니다. ");
 
         wi.set_work(0,1, "화성 풍경: 가림막", "김지은", "작가가 화성 봉담지구로 이주한 후 마주한 병점역 앞 풍경입니다. 아스팔트 도로 좌우로 아름드리나무가 줄지어 있습니다. 유서 깊은 융건릉이 있던 이곳은 개발구역으로 지정된 뒤 철제 가림막이 세워졌고 사람이 발 딛고 걸을 수 없는 황량한 땅이 되었습니다. 작가는 지난 10년간 찍힌 로드뷰 사진 중 카메라 왜곡이 적고, 이곳의 풍경을 가장 아름다우면서도 황량하게 담은 사진을 골라 그림으로써 삶의 터전이 비장소화 되어가는 과정을 재현했습니다. ");
-        wi.set_work(0,2, "화성 놀이터", "김지은","아파트 단지에서 흔히 볼 수 있는 육각 지붕의 정자와 놀이터입니다. 하지만 그 배경은 화성 탐사선이 보내준 황량한 화성 풍경으로 꽤나 낯선 조합입니다. 작가에게 택지개발지구의 놀이터와 정자는 특정 시간대에 아이들이 모이다가 갑자기 모두 다 사라지는 신비로운 곳처럼 느껴졌습니다. 택지개발자의 기능적인 배치가 만들어낸 낯선 풍경 그리고 이런 기능적인 사물/공간이 없다면 갈 곳이 없는 아이들, 이것이 오늘날 택지지구 아파트 단지의 풍경입니다.");
+        wi.set_work(0,2, "화성 정자와 화성 놀이터", "김지은","아파트 단지에서 흔히 볼 수 있는 육각 지붕의 정자와 놀이터입니다. 하지만 그 배경은 화성 탐사선이 보내준 황량한 화성 풍경으로 꽤나 낯선 조합입니다. 작가에게 택지개발지구의 놀이터와 정자는 특정 시간대에 아이들이 모이다가 갑자기 모두 다 사라지는 신비로운 곳처럼 느껴졌습니다. 택지개발자의 기능적인 배치가 만들어낸 낯선 풍경 그리고 이런 기능적인 사물/공간이 없다면 갈 곳이 없는 아이들, 이것이 오늘날 택지지구 아파트 단지의 풍경입니다.");
         wi.set_work(0,3, "화성 풍경: 흙", "김지은","불도저가 한차례 쓸고 간 듯 마구 파헤쳐진 땅의 전경입니다. 공사현장에서 나온 쓰레기가 곳곳에 쌓여 있습니다. 작가는 공사현장을 다니며 도시 개발 이면의 현상에 주목했습니다. 도시 정비 과정에서 삶의 공간은 원래의 장소성을 잃고 방치되곤 합니다. 전시장 바닥에는 공사현장에 설치되는 도로 방호벽을 미니어처로 만든 종이 구조물이 놓여 있습니다. 일상 공간에서 개발이 진행될 때 펼쳐지는 비현실적인 풍경이 전시장에서 반복됩니다.");
         wi.set_work(0,4, "주차장", "김지은","대형마트 주차장에 두 아이가 서 있습니다. 작가는 화성으로 이주한 뒤 미국에서나 보았던, 차로 가야 하는 빅박스 형태의 대형마트를 보게 되었습니다. 공공택지지구에서 이런 편의시설은 마치 전염병처럼 주변 부지의 개발을 이끌고 주민의 삶의 방식에 영향을 미칩니다. 작가는 본인에겐 낯선 택지지구의 삶이 아이들에게는 자연스러운 것으로 경험되리라 생각했습니다. 매 순간 자라나는 아이들의 모습과 어디나 동일한 교외 대형마트 주차장 풍경이 대비를 이룹니다.");
 
@@ -218,7 +218,7 @@ public class Bluetooth {
     }
 
 
-    private void scan() {
+    public void scan() {
         Log.e("BLE", "Scan Button");
         adapter.startLeScan(scancallback);
     }
@@ -233,7 +233,6 @@ public class Bluetooth {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
                     String macAdd = device.getAddress();
-                    Log.e("BLE", "Scan");
 
                     if (true) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
@@ -251,7 +250,6 @@ public class Bluetooth {
                         //각 구역별 배치된 비콘 RSSI 수집
                         for (int i = 0; i < Macs.length; i++) {
                             if (macAdd.equals(Macs[i]) && !check[i]) {
-                                Log.e("BLE", "Scan call");
                                 if (n_b[i] != collect_num) {
                                     //Log.e("ble",String.valueOf(i) + ": " + String.valueOf(n_b[i]));
                                     rssi_value[i][n_b[i]] = -rssi;
@@ -317,7 +315,7 @@ public class Bluetooth {
         }
         Log.e("Comm", "전송");
 
-        int[] send_data = new int[]{Integer.valueOf(r1), Integer.valueOf(r2), Integer.valueOf(r3),Integer.valueOf(r4),Integer.valueOf(r5),Integer.valueOf(r6),};
+        //int[] send_data = new int[]{Integer.valueOf(r1), Integer.valueOf(r2), Integer.valueOf(r3),Integer.valueOf(r4),Integer.valueOf(r5),Integer.valueOf(r6),};
 
         call.enqueue(new Callback<String>() {
             @Override
@@ -348,6 +346,7 @@ public class Bluetooth {
                 // 보고 있는 방향이 앞이라면 앞으로만 1칸씩만 이동 가능하게 설정
                 // 작품 설명 중이 아니여야 응답 인식 (explaining == false)
                 //if(changable && direction) {
+                Log.e("ble", String.valueOf(changable) + " / " + String.valueOf(explaining));
                 if(true && changable&&!explaining){
                     //location queue에 들어가 있는 내용들이 전부 동일한지 체크
                     location_queue[n_lq%location_queue.length] = map_index;
@@ -426,7 +425,6 @@ public class Bluetooth {
                 }
                 else if (section == "2" && map_index == 9){
                     tts.speak(drec[1] + "으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
-                    user_ori.change_cali_AtC(cali[1]);
                 }
                 else {
                     tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
@@ -446,9 +444,10 @@ public class Bluetooth {
                 else {
                     String name = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0];
                     String artist = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1];
-                    tts.speak("잠시 멈춰주세요. " + artist + " 작가님의 작품 중 하나인 " + name + "이 있는 위치입니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak("잠시 멈춰주세요. " + artist + " 작가님의 작품 중 하나인 " + name + "이 좌측에 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
                     if((section == "0" && map_index == 10) || (section=="1" && map_index == 8)) {
                         tts.speak("상세 설명을 들으시려면 몸을 좌우로 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
+                        user_ori.change_cali_AtC(cali[0]);
                     }
                     else {
                         tts.speak("상세 설명을 들으시려면 " + drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
@@ -461,7 +460,7 @@ public class Bluetooth {
                             // p_location time
                             try {
                                 changable = false;
-                                Thread.sleep(3000);
+                                Thread.sleep(15000);
                                 changable = true;
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
@@ -483,7 +482,7 @@ public class Bluetooth {
                 }
                 if(section == "1"){
                     if(currentSector == 4){
-                        tts.speak("",TextToSpeech.QUEUE_FLUSH,null);
+                        tts.speak("앞으로 계속해서 이동해주세요.",TextToSpeech.QUEUE_FLUSH,null);
                     }
                         //tts.speak("앞쪽의 제 3관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
                     if(map_index == 9)
@@ -498,6 +497,7 @@ public class Bluetooth {
                             try {
                                 Thread.sleep(2000);
                                 tts.speak("11시 방향으로 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                user_ori.change_cali_AtC(180);
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
@@ -553,6 +553,7 @@ public class Bluetooth {
     }
 
     public void speak_wi(){
+        tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], currentSector))[0] + "은" , TextToSpeech.QUEUE_ADD, null);
         tts.speak(wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], currentSector))[2], TextToSpeech.QUEUE_ADD, null);
         tts.speak("작품 설명이 끝났습니다. 3시 방향으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
     }

@@ -503,7 +503,7 @@ public abstract class CameraActivity extends AppCompatActivity
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
-    initializeTTS();
+    //initializeTTS();
     checkPermission();
     startBeaconService();
   }

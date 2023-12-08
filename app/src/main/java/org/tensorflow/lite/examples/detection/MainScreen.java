@@ -123,7 +123,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
     protected int[] amplitudes={0,100,0,200};
     protected String title_Start_String = "";
     protected String title_End_String = "";
-    protected final long PERSON_DETECT_HEAD_SIZE_2M = 6000;
+    protected final long PERSON_DETECT_HEAD_SIZE_2M = 0;
 
     protected String detect_person_String = "사람이 전방에 있습니다.";
     protected Vibrator vibrator;
@@ -147,11 +147,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         b_layout.setLayoutParams(params);
 
 
-        try {
-            store_m = new StoreManagement();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        //try {
+        //    store_m = new StoreManagement();
+        //} catch (IOException e) {
+        //    throw new RuntimeException(e);
+        //}
 
 
         click = false;
@@ -481,16 +481,16 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                 Classifier.Recognition result = results.get(maxSize[0]);
                                 int classIndex = result.getDetectedClass();
                                 Log.e("CHECK", "getConfidence: " + Float.toString(result.getConfidence()));
-                                if (classIndex <= 1 && result.getConfidence() > 0.6) {  //신뢰도 0.6 이상만.
+                                if (classIndex <= 1 && result.getConfidence() >= 0.6) {  //신뢰도 0.6 이상만.
                                     RectF location = result.getLocation();
 
                                     //float[] location_data = new float[]{location.right, location.left, location.top, location.bottom};
                                     //long detect_time = System.currentTimeMillis();
                                     //String detect = "";
 
-                                    if (location != null && result.getConfidence() >= minimumConfidence) {
+                                    if (location != null) {
                                     //    detect = "T";
-                                        if (((location.right - location.left) * (location.bottom - location.top)) > PERSON_DETECT_HEAD_SIZE_2M) {
+                                        if (((location.right - location.left) * (location.bottom - location.top)) >= PERSON_DETECT_HEAD_SIZE_2M) {
                                             //canvas.drawRect(location, paint);
                                             findInfo = location.toString() + " : " + Float.toString(((location.right - location.left)
                                                     * (location.bottom - location.top)));
@@ -501,7 +501,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                             Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
                                             if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
                                                 PersonDetectTime = tempTime;
-                                                tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
+                                                //tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);
                                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                                                     VibrationEffect vibrationEffect = VibrationEffect.createWaveform(pattern, amplitudes, -1);
                                                     vibrator.vibrate(vibrationEffect);
