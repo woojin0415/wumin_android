@@ -107,8 +107,9 @@ public class user_orientation implements SensorEventListener{
             //Log.e("gyro",String.valueOf(gyro_value[0]) + " / " + String.valueOf(gyro_value[1]) + " / " + String.valueOf(gyro_value[2]) + " / " );
             filter[count%filter_length] = gyro_value[1];
             count++;
-            if (check_filter(filter, -1) && time_interval && !explain && ble.p_location()){
-                explain = true;
+            if (check_filter(filter, -1) && time_interval && !explain_ori && ble.p_location() && (ble.getsection() == 0 && ble.get_sector() == 10)){
+                explain_ori = true;
+                calib_ori +=90;
                 tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                 ble.speak_wi();
                 new Thread(new Runnable() {
@@ -170,7 +171,7 @@ public class user_orientation implements SensorEventListener{
                     tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                     ble.speak_wi();
 
-                } else if ((azimuth >= 340 || azimuth <= 20) && explain_ori&& ble.p_location()){
+                } else if ((azimuth >= 330 || azimuth <= 30) && explain_ori&& ble.p_location()){
                     //tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
                     //Log.e("ori", String.valueOf(azimuth));
                     explain_ori = false;

@@ -138,9 +138,9 @@ public class Bluetooth {
         sections[2] = sector3;
         wi = new work_information(3, 11);
 
-        ble_storage = new BLEStorage[10000];
+        //ble_storage = new BLEStorage[10000];
 
-        this.store_m = store_m;
+        //this.store_m = store_m;
 
         set_wi();
     }
@@ -187,8 +187,8 @@ public class Bluetooth {
 
         send_num = 0;
 
-        store_m.reset_ble(ble_storage);
-        ble_storage_count = 0;
+        //store_m.reset_ble(ble_storage);
+        //ble_storage_count = 0;
 
         scan();
         Log.e("BLE", "시작");
@@ -197,6 +197,7 @@ public class Bluetooth {
     public int getsection(){
         return Integer.valueOf(section);
     }
+    public double get_sector() {return currentSector;}
 
     //현재 있는 section에서 몇번째 그림인지 반환
     public int num_pic(){
@@ -213,7 +214,7 @@ public class Bluetooth {
             n_b[i] = 0;
             check[i] = false;
         }
-        store_m.ble_store(ble_storage);
+        //store_m.ble_store(ble_storage);
     }
 
 
@@ -328,9 +329,9 @@ public class Bluetooth {
                 }
                 int map_index = Integer.valueOf(response_);
 
-                long time = System.currentTimeMillis();
-                BLEStorage ble_data = new BLEStorage();
-                ble_data.set_values(time, section, response_, send_data);
+                //long time = System.currentTimeMillis();
+                //BLEStorage ble_data = new BLEStorage();
+                //ble_data.set_values(time, section, response_, send_data);
 
 
                 if(section=="2" && currentSector >=8){
@@ -460,7 +461,7 @@ public class Bluetooth {
                             // p_location time
                             try {
                                 changable = false;
-                                Thread.sleep(15000);
+                                Thread.sleep(3000);
                                 changable = true;
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);

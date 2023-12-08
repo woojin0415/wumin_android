@@ -171,7 +171,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         ble = new Bluetooth(adapter, user_ori, tts, store_m);
 
 
-        detect_storage = new DetectorStorage[10000];
+        //detect_storage = new DetectorStorage[10000];
 
 
 
@@ -207,8 +207,8 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                     WiFi.start();
                     user_ori.start();
 
-                    store_m.reset_detector(detect_storage);
-                    detector_storage_count = 0;
+                    //store_m.reset_detector(detect_storage);
+                    //detector_storage_count = 0;
 
                 }
                 else {
@@ -217,7 +217,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                     try {
                         ble.stop();
                         user_ori.stop();
-                        store_m.detector_store(detect_storage);
+                        //store_m.detector_store(detect_storage);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -441,7 +441,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (detect_start) {
+                        if (true) {
                             LOGGER.i("Running detection on image " + currTimestamp);
                             final long startTime = SystemClock.uptimeMillis();
                             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
@@ -484,12 +484,12 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                 if (classIndex <= 1 && result.getConfidence() > 0.6) {  //신뢰도 0.6 이상만.
                                     RectF location = result.getLocation();
 
-                                    float[] location_data = new float[]{location.right, location.left, location.top, location.bottom};
-                                    long detect_time = System.currentTimeMillis();
-                                    String detect = "";
+                                    //float[] location_data = new float[]{location.right, location.left, location.top, location.bottom};
+                                    //long detect_time = System.currentTimeMillis();
+                                    //String detect = "";
 
                                     if (location != null && result.getConfidence() >= minimumConfidence) {
-                                        detect = "T";
+                                    //    detect = "T";
                                         if (((location.right - location.left) * (location.bottom - location.top)) > PERSON_DETECT_HEAD_SIZE_2M) {
                                             //canvas.drawRect(location, paint);
                                             findInfo = location.toString() + " : " + Float.toString(((location.right - location.left)
@@ -509,23 +509,24 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
                                             }
                                         } else {
-                                            detect = "F";
+                                        //    detect = "F";
                                             findInfo = "No " + location.toString() + " : " + Float.toString(((location.right - location.left)
                                                     * (location.bottom - location.top)));
                                         }
-                                        DetectorStorage detector_dataset = new DetectorStorage();
-                                        detector_dataset.set_values(detect_time, detect, location_data);
-                                        detect_storage[detector_storage_count++] = detector_dataset;
 
-                                        if (detector_storage_count == detect_storage.length) {
-                                            try {
-                                                store_m.detector_store(detect_storage);
-                                                store_m.reset_detector(detect_storage);
-                                                detector_storage_count = 0;
-                                            } catch (IOException e) {
-                                                throw new RuntimeException(e);
-                                            }
-                                        }
+                                        //DetectorStorage detector_dataset = new DetectorStorage();
+                                        //detector_dataset.set_values(detect_time, detect, location_data);
+                                        //detect_storage[detector_storage_count++] = detector_dataset;
+
+                                        //if (detector_storage_count == detect_storage.length) {
+                                        //    try {
+                                        //        store_m.detector_store(detect_storage);
+                                        //        store_m.reset_detector(detect_storage);
+                                        //        detector_storage_count = 0;
+                                        //    } catch (IOException e) {
+                                        //        throw new RuntimeException(e);
+                                        //    }
+                                        //}
 
 
                                     }
