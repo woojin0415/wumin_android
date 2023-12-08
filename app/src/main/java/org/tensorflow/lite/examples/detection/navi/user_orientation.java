@@ -149,11 +149,11 @@ public class user_orientation implements SensorEventListener{
                 }
             }
 
-            if (ori_init_count < 100){
+            if (ori_init_count < ori_init_filter.length){
                 ori_init_filter[ori_init_count] = azimuth;
                 ori_init_count++;
             }
-            else if (ori_init_count == 100){
+            else if (ori_init_count == ori_init_filter.length){
                 calib_ori = orientation_filter_median(ori_init_filter);
                 ori_init_count++;
                 tts.speak("방향 초기화 완료", TextToSpeech.QUEUE_FLUSH, null);

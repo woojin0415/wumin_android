@@ -529,6 +529,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
 
                                     }
+                                    //findinfo 저장
                                 }
                             }
 
