@@ -19,6 +19,7 @@ import android.hardware.SensorManager;
 import android.media.ImageReader;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Message;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -163,12 +164,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         wfm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifi WiFi = new wifi(wfm, this);
 
-
         user_ori = new user_orientation(sm, gyro, mag, rotation, tts, store_m);
-
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         ble = new Bluetooth(adapter, user_ori, tts, store_m);
+
 
 
         //detect_storage = new DetectorStorage[10000];
@@ -200,7 +200,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
             public void onClick(View view) {
                 click = !click;
                 if(!start){
-                    tts.speak("시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak("시스템을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
                     detect_start = true;
                     ble.start("0");
@@ -441,7 +441,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (true) {
+                        if (false) {
                             LOGGER.i("Running detection on image " + currTimestamp);
                             final long startTime = SystemClock.uptimeMillis();
                             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);

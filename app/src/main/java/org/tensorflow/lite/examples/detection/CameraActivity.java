@@ -41,6 +41,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.os.RemoteException;
 import android.os.Trace;
 import androidx.annotation.NonNull;
@@ -503,6 +504,12 @@ public abstract class CameraActivity extends AppCompatActivity
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
+
+    //message queue 오류 제거용
+    Message msg = handler.obtainMessage();
+    msg.what = 1;
+    handler.sendMessage(msg);
+
     //initializeTTS();
     checkPermission();
     startBeaconService();
