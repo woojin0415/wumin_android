@@ -168,6 +168,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         ble = new Bluetooth(adapter, user_ori, tts, store_m);
+        user_ori.set_ble(ble);
 
 
 
@@ -200,7 +201,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
             public void onClick(View view) {
                 click = !click;
                 if(!start){
-                    tts.speak("시스템을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
+                    tts.speak("방향 설정을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
                     detect_start = true;
                     ble.start("0");
