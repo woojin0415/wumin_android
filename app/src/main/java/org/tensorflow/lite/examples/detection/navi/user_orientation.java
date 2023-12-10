@@ -26,6 +26,7 @@ public class user_orientation implements SensorEventListener{
     private int ori_init_count = 0;
     private double[] ori_init_filter = new double[50];
     private double calib_ori;
+    private double[] calib_sector_ori = new double[]{0,0,0,10,50};
     private boolean ori_time_interval;
 
     private int filter_length = 10;
@@ -65,7 +66,7 @@ public class user_orientation implements SensorEventListener{
     boolean section_change;
 
     //작품 위치 도착 시 true / 아니면 false
-    boolean ready_explain = true;
+    boolean ready_explain = false;
 
     int[][] explain_direction;
     int [] expain_d_1 = new int[]{0, 270, 0, 90, 180};
@@ -98,7 +99,7 @@ public class user_orientation implements SensorEventListener{
         explain_direction[1] = expain_d_2;
         explain_direction[2] = expain_d_3;
 
-        calib_ori = 209;
+        calib_ori = 100;
 
         forward_work = -1;
         current_map = map_1;
@@ -112,13 +113,20 @@ public class user_orientation implements SensorEventListener{
 //        }
 
         section = 0;
-        sector = 1;
+        sector = 0;
 
         reset_map();
         map_construciton();
         direction_setting();
 
         current_direction = directions_1;
+
+        int k = 4;
+        Log.e("direc", String.valueOf(current_direction[k][0]));
+        Log.e("direc", String.valueOf(current_direction[k][1]));
+        Log.e("direc", String.valueOf(current_direction[k][2]));
+        Log.e("direc", String.valueOf(current_direction[k][3]));
+        Log.e("direc", String.valueOf(current_direction[k][4]));
 
         //ori_storage = new OrientationStorage[10000];
         //this.store_m = store_m;
@@ -144,11 +152,11 @@ public class user_orientation implements SensorEventListener{
 
     //map에 작품 위치 설정
     private void map_construciton(){
-        map_1[0][0] = 0;
-        map_1[6][0] = 1;
-        map_1[10][4] = 2;
-        map_1[6][15] = 3;
-        map_1[0][15] = 4;
+        map_1[2][2] = 0;
+        map_1[5][2] = 1;
+        map_1[9][2] = 2;
+        map_1[6][14] = 3;
+        map_1[2][14] = 4;
 
         map_2[7][0] = 0;
         map_2[7][7] = 1;
@@ -191,6 +199,9 @@ public class user_orientation implements SensorEventListener{
 
         double radian = Math.atan2(y,x);
         double degree = radian * 180 / Math.PI;
+
+        if(degree < 0)
+            degree += 360;
 
         return (int)degree;
     }
@@ -252,13 +263,12 @@ public class user_orientation implements SensorEventListener{
             //String sector_ = String.valueOf(ble.getsection());
             double azimuth = (Math.toDegrees(orientation_values[0]) + 360) % 360;
 
-            if (!(Math.abs(Math.toDegrees(orientation_values[1])) > 50)) {
-
-
-                azimuth = azimuth - calib_ori;
+            if (!(Math.abs(Math.toDegrees(orientation_values[1])) > 30)) {
+                ble.set_moving(false);
+                azimuth = azimuth - calib_ori - calib_sector_ori[sector];
 
                 if (azimuth < 0)
-                    azimuth = (azimuth + 360) % 360;
+                    azimuth = (azimuth + 360);
                 //Log.e("azi", String.valueOf(azimuth));
 
                 for (int i = 0; i < current_direction.length; i++) {
@@ -268,7 +278,7 @@ public class user_orientation implements SensorEventListener{
                     //Log.e("diff", String.valueOf(diff));
 
                     if (diff < 0)
-                        diff = (diff + 360) % 360;
+                        diff = (diff + 360);
 
                     if ((diff >= 350 || diff <= 10) && forward_work != i && !forward_set && sector != i) {
                         Log.e("ori", String.valueOf(diff) + " / " + String.valueOf(i) + " / " + String.valueOf(forward_work));
@@ -299,17 +309,19 @@ public class user_orientation implements SensorEventListener{
                     tts.speak("제 1 전시관으로 이동하실려면 앞으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                     section_change = true;
                 } else if (section == 0 && sector == 0 && !(azimuth <= 350 || azimuth >= 10) && section_change) {
-                    tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
+                    //tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
                     section_change = false;
                 }
 
-                if (ready_explain && explain_check(azimuth)) {
+                if (ready_explain && explain_check(azimuth) && sector != 0) {
                     Log.e("work", "설명");
                     tts.speak("작품 설명을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
                     ble.speak_wi(section, sector);
+                    ble.set_moving(false);
                     ready_explain = false;
                 } else if (!ready_explain && !explain_check(azimuth)) {
                     tts.speak("", TextToSpeech.QUEUE_FLUSH, null);
+                    ble.set_moving(true);
                     ready_explain = true;
                 }
 
@@ -326,6 +338,10 @@ public class user_orientation implements SensorEventListener{
                         }
                     }
                 }).start();
+            }
+            else{
+                ble.set_moving(true);
+                ble.target_sector(forward_work);
             }
         }
     }
@@ -371,6 +387,10 @@ public class user_orientation implements SensorEventListener{
    }
    void set_sector(int sector){
         this.sector = sector;
+   }
+
+   void set_readyexp(boolean tf){
+        this.ready_explain = tf;
    }
 
 }

@@ -45,7 +45,8 @@ public class Bluetooth {
     //median filter에 사용할 rssi 값 개수
     private int collect_num = 6;
     //이전에 분류된 구역 번호
-    private int sector = 0;
+    private int target_sector;
+    private int prev_sector = -1;
 
     //몇 번째 보내는 메시지인지 확인
     private int send_num;
@@ -108,7 +109,7 @@ public class Bluetooth {
 
     //작품 정보 입력
     private void set_wi(){
-        wi.set_work(0,0, "", "김지은","\n" +
+        wi.set_work(0,0, "시작점", "김지은","\n" +
                 "김지은 작가의 개인전 <화성 and 지구에서>에 오신 것을 환영합니다.\n" +
                 "《화성 and 지구에서》는 제21회 우민미술상을 수상한 김지은 작가의 개인전입니다. 김지은 작가는 현대사회의 도시 개발 속에서 현대인의 삶의 공간이 고유한 장소성을 잃어버리고 획일화·상품화되고 있음에 주목합니다. 이번 전시는 김지은 작가가 2017년 경기도 화성시 봉담지구로 이주한 뒤, 서울과 화성을 오가거나 택지지구에서 생활하면서 낯선 풍경을 접하면서 시작한 작업을 소개합니다. 작가는 오늘의 주거환경을 어떤 시선으로 바라보고 있는지 만나보겠습니다. ");
 
@@ -188,6 +189,8 @@ public class Bluetooth {
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
                     String macAdd = device.getAddress();
 
+                    Log.e("ble", "scan");
+
                     if (true) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
                         if (check_rssi(check)) {
@@ -195,7 +198,6 @@ public class Bluetooth {
                                 n_b[i] = 0;
                                 check[i] = false;
                             }
-                            //tts.speak("데이터 전송", TextToSpeech.QUEUE_FLUSH, null);
                             send(rssi_value);
                             send_num++;
                             //Log.e("comm", "send");
@@ -267,7 +269,6 @@ public class Bluetooth {
             r6 = "x";
             call = service.getMember(section, r1, r2, r3, r4, r5, r6);
         }
-        Log.e("Comm", "전송");
 
         //int[] send_data = new int[]{Integer.valueOf(r1), Integer.valueOf(r2), Integer.valueOf(r3),Integer.valueOf(r4),Integer.valueOf(r5),Integer.valueOf(r6),};
 
@@ -276,12 +277,20 @@ public class Bluetooth {
             public void onResponse(Call<String> call, Response<String> response) {
                 if(moving) {
                     String response_ = response.body();
-                    if (response_ == "x") {
-                        return;
-                    }
-                    int map_index = Integer.valueOf(response_);
+                    if (!response_.equals("x")) {
+                        int map_index = Integer.valueOf(response_);
 
-                    user_ori.set_sector(map_index);
+                        if (target_sector == map_index && prev_sector != map_index) {
+
+                            user_ori.set_sector(map_index);
+
+                            if (section == "0") {
+                                user_ori.set_readyexp(true);
+                                tts.speak(wi.get_work(Integer.valueOf(section), map_index)[0] + "(이)가 있는 곳입니다.", TextToSpeech.QUEUE_FLUSH, null);
+                            }
+                            prev_sector = map_index;
+                        }
+                    }
                 }
 
 
@@ -343,4 +352,11 @@ public class Bluetooth {
         tts.speak("작품 설명이 끝났습니다. 3시 방향으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
     }
 
+    public void set_moving(boolean tf){
+        this.moving = tf;
+    }
+
+    public void target_sector(int sector){
+        this.target_sector = sector;
+    }
 }
