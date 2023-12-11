@@ -31,6 +31,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -154,6 +155,10 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         //    throw new RuntimeException(e);
         //}
 
+        EditText et_section = findViewById(R.id.et_section);
+        EditText et_sector = findViewById(R.id.et_sector);
+        EditText et_mac = findViewById(R.id.et_mac);
+
 
         click = false;
 
@@ -207,6 +212,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                     ble.start("0");
                     WiFi.start();
                     user_ori.start();
+
+                    String section = et_section.getText().toString();
+                    int sector = Integer.valueOf(et_sector.getText().toString());
+                    int mac_index = Integer.valueOf(et_mac.getText().toString());
+                    ble.init_setting(section, sector, mac_index);
 
                     //store_m.reset_detector(detect_storage);
                     //detector_storage_count = 0;
@@ -442,7 +452,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (false) {
+                        if (true) {
                             LOGGER.i("Running detection on image " + currTimestamp);
                             final long startTime = SystemClock.uptimeMillis();
                             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);

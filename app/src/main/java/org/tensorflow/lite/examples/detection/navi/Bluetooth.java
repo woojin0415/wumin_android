@@ -199,20 +199,18 @@ public class Bluetooth {
         scan();
         Log.e("BLE", "시작");
     }
+    public void init_setting(String section, int sector, int mac){
+        this.section = section;
+        this.currentSector = sector;
+        this.mac_index = mac;
+        this.Macs = MAC_info[Integer.valueOf(section)][mac];
+    }
 
     public int getsection(){
         return Integer.valueOf(section);
     }
     public double get_sector() {return currentSector;}
 
-    //현재 있는 section에서 몇번째 그림인지 반환
-    public int num_pic(){
-        return index_return(p_loc[Integer.valueOf(section)], currentSector);
-    }
-
-    public boolean getchangable(){
-        return changable;
-    }
 
     public void stop() throws IOException {
         stopscan();
@@ -239,9 +237,9 @@ public class Bluetooth {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
                     String macAdd = device.getAddress();
-                    Log.e("SB", String.valueOf(ble_start));
+                    //Log.e("SB", String.valueOf(ble_start));
                     if (ble_start) {
-                        Log.e("BLE", "BLE START");
+                        //Log.e("BLE", "BLE START");
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
                         if (check_rssi(check)) {
                             for(int i =0; i<n_b.length; i++){
@@ -273,7 +271,7 @@ public class Bluetooth {
     private void setRetrofitInit () {
         Gson gson = new GsonBuilder().setLenient().create();
         retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.173:7777/")
+                .baseUrl("http://192.168.1.2:7777/")
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
