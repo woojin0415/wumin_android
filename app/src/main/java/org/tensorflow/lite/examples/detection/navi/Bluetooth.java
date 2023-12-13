@@ -26,34 +26,10 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class Bluetooth {
 
-    private String[] sector1_std = {"D8:3A:DD:1D:C4:45", "D8:3A:DD:1D:C5:EA", "D8:3A:DD:1D:C6:FA", "D8:3A:DD:1D:C6:9D", "D8:3A:DD:1D:C6:85", "D8:3A:DD:1D:C7:5A"};
-    //private String[] sector1_std = {"AC:23:3F:E8:04:41", "AC:23:3F:E8:04:41", "AC:23:3F:E8:04:41", "AC:23:3F:E8:04:41", "AC:23:3F:E8:04:41", "AC:23:3F:E8:04:41"};
-    private String[] sector1_1 = {sector1_std[0], sector1_std[1], sector1_std[2]};
-    private String[] sector1_2 = {sector1_std[1], sector1_std[2], sector1_std[3]};
-    private String[] sector1_3 = {sector1_std[2], sector1_std[3], sector1_std[5]};
-    private String[] sector1_4 = {sector1_std[0], sector1_std[4], sector1_std[5]};
-
-    private String[][] sector1 = {sector1_1, sector1_2, sector1_3, sector1_4};
-    private int[] mac_change_1 = {3, 7, 11};
-
-
-    private String[] sector2_std = {"D8:3A:DD:1D:C4:90", "D8:3A:DD:1D:C2:B3", "D8:3A:DD:1D:C6:B5", "D8:3A:DD:1D:C6:1F", "D8:3A:DD:1D:C6:3A"};
-    private String [] sector2_1 = {sector2_std[2], sector2_std[3], sector2_std[4]};
-    private String [] sector2_2 = {sector2_std[0], sector2_std[1], sector2_std[2]};
-    private String [] sector2_3 = {sector2_std[0], sector2_std[1], sector2_std[4]};
-    private String[][] sector2 = {sector2_1, sector2_2, sector2_3};
-    private int [] mac_change_2 = {3, 6};
-
-
-    private String[] sector3_std = {"D8:3A:DD:1D:C6:48", "D8:3A:DD:1D:C7:09", "D8:3A:DD:1D:C7:00", "D8:3A:DD:1D:C6:AD", "D8:3A:DD:1D:C3:C1"};
-    private String [] sector3_1 = {sector3_std[1], sector3_std[2], sector3_std[3]};
-    private String [] sector3_2 = {sector3_std[0], sector3_std[1], sector3_std[2]};
-    private String [] sector3_3 = {sector3_std[0], sector3_std[2], sector3_std[4]};
-    private String [][] sector3 = {sector3_1, sector3_2, sector3_3};
-    private int[] mac_change_3 = {3,7};
-
-    private String[][][] MAC_info = { sector1, sector2, sector3};
-    private int[][] mac_changes = {mac_change_1, mac_change_2, mac_change_3};
+    private String[] sector1 = {"D8:3A:DD:1D:C4:45", "D8:3A:DD:1D:C5:EA", "D8:3A:DD:1D:C6:FA", "D8:3A:DD:1D:C6:9D", "D8:3A:DD:1D:C6:85", "D8:3A:DD:1D:C7:5A"};
+    private String[] sector2 = {"D8:3A:DD:1D:C4:90", "D8:3A:DD:1D:C2:B3", "D8:3A:DD:1D:C6:B5", "D8:3A:DD:1D:C6:1F", "D8:3A:DD:1D:C6:3A"};
+    private String[] sector3 = {"D8:3A:DD:1D:C6:48", "D8:3A:DD:1D:C7:09", "D8:3A:DD:1D:C7:00", "D8:3A:DD:1D:C6:AD", "D8:3A:DD:1D:C3:C1"};
+    private String[][] sections;
 
     private Retrofit retrofit;
     private BluetoothLeScanner scanner;
@@ -64,11 +40,11 @@ public class Bluetooth {
 
     // 구역에 있는 맥 주소
     private String[] Macs;
-    private int mac_index;
     private boolean[] check;
     private int[] n_b;
+    private int[] rssi_cali;
     //median filter에 사용할 rssi 값 개수
-    private int collect_num = 5;
+    private int collect_num = 6;
     //이전에 분류된 구역 번호
     private double currentSector = -1;
 
@@ -76,12 +52,12 @@ public class Bluetooth {
     private int send_num;
 
     private user_orientation user_ori;
-    private String section = "0";
+    private String section;
 
     //그림이 있는 map index 배열
-    int[] p_loc_1 = new int[]{0, 1, 3, 8, 10};
-    int[] corner_1 = new int[]{2, 6};
-    int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11};
+    int[] p_loc_1 = new int[]{0, 1, 4, 8, 10};
+    int[] corner_1 = new int[]{2, 7};
+    int[] route_1 = new int[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13};
 
     int[] p_loc_2 = new int[]{2, 6, 7};
     int[] corner_2 = new int[]{1, 3, 8};
@@ -103,18 +79,25 @@ public class Bluetooth {
     private TextToSpeech tts;
 
     private boolean changable;
-    private boolean ble_start = false;
 
     //현재 사용자 방향 t: 정방향 f: 반대 방향
     private boolean direction;
 
-    private work_information wi;
+
+    //location 정보가 들어가는 queue
+    //queue에 저장된 location들이 전부 일치하면 해당 location으로 변경
+    private int[] location_queue;
+    // location queue index 위치 n_lq % 30
+    private int n_lq;
+    private org.tensorflow.lite.examples.detection.navi.work_information wi;
 
     //작품 설명중이면 T 아니면 F
     private boolean explaining;
     private BLEStorage[] ble_storage;
     private StoreManagement store_m;
     private int ble_storage_count;
+
+    private boolean ble_start = false;
 
 
 
@@ -129,9 +112,9 @@ public class Bluetooth {
 
         changable = true;
         //user_ori.set_ble(this);
+        location_queue = new int[7];
 
-        setRetrofitInit();
-        section = "0";
+        //section = "0";
 
         p_loc[0] = p_loc_1;
         p_loc[1] = p_loc_2;
@@ -145,11 +128,17 @@ public class Bluetooth {
         route[1] = route_2;
         route[2] = route_3;
 
-        last[0] = new int[]{11};
+        last[0] = new int[]{13};
         last[1] = new int[]{5, 9};
         last[2] = new int[]{10};
 
+        sections = new String[3][];
+        sections[0] = sector1;
+        sections[1] = sector2;
+        sections[2] = sector3;
         wi = new work_information(3, 11);
+
+        Macs = sections[0];
 
         //ble_storage = new BLEStorage[10000];
 
@@ -157,6 +146,7 @@ public class Bluetooth {
 
         set_wi();
     }
+
 
     //작품 정보 입력
     public void set_wi(){
@@ -178,32 +168,28 @@ public class Bluetooth {
         wi.set_work(2,2,"화성풍경: 모델하우스", "김지은","봉담 택지지구 인근에 있던 모델하우스의 철거 장면을 담은 작품입니다. 아파트 분양을 위해 지어지는 모델하우스는 아직 존재하지 않는 아파트를 실제 공간처럼 완벽하게 재현하여 구매자의 거주 욕망을 가상으로 실현해줍니다. 하지만 그 기능을 다 하고 나면 일시에 철거되어 폐허가 됩니다. 작가는 부동산 광고나 대출 전단지, 인테리어 시트지를 꼴라주하여 모델하우스 철거 풍경을 재현함으로써 아파트라는 공간의 일시성과 가상성을 드러냅니다.");
     }
 
-    public void start(String section) {
+    public void set_init(String section, double sector){
+        this.section = section;
+        this.currentSector = sector;
         this.direction = true;
-        this.mac_index = 0;
-        Macs = MAC_info[0][0];
+        this.Macs = sections[Integer.valueOf(section)];
         n_b = new int[Macs.length];
         check = new boolean[Macs.length];
+
         for (int i = 0; i < n_b.length; i++) {
             n_b[i] = 0;
             check[i] = false;
         }
-        this.section = section;
+        setRetrofitInit();
 
+    }
 
-        send_num = 0;
-
+    public void start() {
         //store_m.reset_ble(ble_storage);
         //ble_storage_count = 0;
 
         scan();
-        Log.e("BLE", "시작");
-    }
-    public void init_setting(String section, int sector, int mac){
-        this.section = section;
-        this.currentSector = sector;
-        this.mac_index = mac;
-        this.Macs = MAC_info[Integer.valueOf(section)][mac];
+        //Log.e("BLE", "시작");
     }
 
     public int getsection(){
@@ -211,6 +197,14 @@ public class Bluetooth {
     }
     public double get_sector() {return currentSector;}
 
+    //현재 있는 section에서 몇번째 그림인지 반환
+    public int num_pic(){
+        return index_return(p_loc[Integer.valueOf(section)], currentSector);
+    }
+
+    public boolean getchangable(){
+        return changable;
+    }
 
     public void stop() throws IOException {
         stopscan();
@@ -223,23 +217,23 @@ public class Bluetooth {
 
 
     public void scan() {
-        Log.e("BLE", "Scan Button");
+        //Log.e("BLE", "Scan Button");
         adapter.startLeScan(scancallback);
     }
 
 
     private void stopscan() {
 
-        adapter.stopLeScan(scancallback);
+        //adapter.stopLeScan(scancallback);
     }
 
     private BluetoothAdapter.LeScanCallback scancallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] bytes) {
                     String macAdd = device.getAddress();
-                    //Log.e("SB", String.valueOf(ble_start));
-                    if (ble_start) {
-                        //Log.e("BLE", "BLE START");
+                    Log.e("ble", "Scan");
+
+                    if (true && ble_start) {
                         //모든 비콘 데이터들이 수집되었으면 서버로 전송
                         if (check_rssi(check)) {
                             for(int i =0; i<n_b.length; i++){
@@ -249,7 +243,8 @@ public class Bluetooth {
                             //tts.speak("데이터 전송", TextToSpeech.QUEUE_FLUSH, null);
                             send(rssi_value);
                             send_num++;
-                            //Log.e("comm", "send");
+                            Log.e("comm", "send");
+                            scan();
                         }
 
                         //각 구역별 배치된 비콘 RSSI 수집
@@ -278,20 +273,49 @@ public class Bluetooth {
     }
 
     private void send (int[][] rssi_value) {
-        Log.e("comm", "전송");
+        //Log.e("comm", "전송");
         String r1 = "0";
         String r2 = "0";
         String r3 = "0";
-        String nm = String.valueOf(mac_index);
+        String r4 = "0";
+        String r5 = "0";
+        String r6 = "0";
         Call<String> call = null;
 
-        section service = retrofit.create(section.class);
-        r1 = RssiToString(rssi_value[0]);
-        r2 = RssiToString(rssi_value[1]);
-        r3 = RssiToString(rssi_value[2]);
-        call = service.getMember(section, r1, r2, r3, nm);
+        Log.e("comm", section);
 
-        Log.e("Comm", "전송");
+        if (section.equals("0")){
+            section1 service = retrofit.create(section1.class);
+            r1 = median_rssi(rssi_value[0]);
+            r2 = median_rssi(rssi_value[1]);
+            r3 = median_rssi(rssi_value[2]);
+            r4 = median_rssi(rssi_value[3]);
+            r5 = median_rssi(rssi_value[4]);
+            r6 = median_rssi(rssi_value[5]);
+            call = service.getMember(section, r1, r2, r3, r4, r5, r6, String.valueOf(send_num));
+        }
+
+        else if (section.equals("1")){
+            section2 service = retrofit.create(section2.class);
+            r1 = median_rssi(rssi_value[0]);
+            r2 = median_rssi(rssi_value[1]);
+            r3 = median_rssi(rssi_value[2]);
+            r4 = median_rssi(rssi_value[3]);
+            r5 = median_rssi(rssi_value[4]);
+            r6 = "x";
+            call = service.getMember(section, r1, r2, r3, r4, r5, r6);
+        }
+        else if (section.equals("2")){
+            section3 service = retrofit.create(section3.class);
+            r1 = median_rssi(rssi_value[0]);
+            r2 = median_rssi(rssi_value[1]);
+            r3 = median_rssi(rssi_value[2]);
+            r4 = median_rssi(rssi_value[3]);
+            r5 = median_rssi(rssi_value[4]);
+            r6 = "x";
+            call = service.getMember(section, r1, r2, r3, r4, r5, r6);
+        }
+        //Log.e("Comm", "전송");
 
         //int[] send_data = new int[]{Integer.valueOf(r1), Integer.valueOf(r2), Integer.valueOf(r3),Integer.valueOf(r4),Integer.valueOf(r5),Integer.valueOf(r6),};
 
@@ -310,37 +334,30 @@ public class Bluetooth {
                 //ble_data.set_values(time, section, response_, send_data);
 
 
+                if(section.equals("2") && currentSector >=8){
+                    if(map_index == 2)
+                        map_index = 9;
+                    else if(map_index == 0)
+                        map_index = 10;
+                }
+                else if(section.equals("1") && currentSector == 8){
+                    if(map_index == 1)
+                        map_index =9;
+                }
+
                 // 보고 있는 방향이 앞이라면 앞으로만 1칸씩만 이동 가능하게 설정
                 // 작품 설명 중이 아니여야 응답 인식 (explaining == false)
-                //Log.e("ble", String.valueOf(changable) + " / " + String.valueOf(explaining));
+                //if(changable && direction) {
+               // Log.e("ble", String.valueOf(changable) + " / " + String.valueOf(explaining));
                 if(true && changable&&!explaining){
                     //location queue에 들어가 있는 내용들이 전부 동일한지 체크
+                    location_queue[n_lq%location_queue.length] = map_index;
+                    n_lq++;
 
                     if (check_route(currentSector, map_index)) {
                         if (map_index - currentSector == 2)
                             map_index -= 1;
-                        if (mac_change_check(map_index)){
-                            if (section == "0"){
-                                if(map_index == 11)
-                                    beacon_change(1, 0);
-                                else {
-                                    beacon_change(0, mac_index+1);
-                                }
-                            }
-                            if(section == "1"){
-                                if(map_index == 5)
-                                    beacon_change(2,0);
-                                else{
-                                    beacon_change(1,map_index+1);
-                                }
-                            }
-                            if(section == "2"){
-                                if(map_index == 10)
-                                    beacon_change(1,2);
-                                else
-                                    beacon_change(2,map_index+1);
-                            }
-                        }
+                        location_queue[n_lq%location_queue.length] = map_index;
                         describe(map_index, true);
                         section_change_check();
 
@@ -352,12 +369,22 @@ public class Bluetooth {
 
                 if(false) {
 
+                    n_lq++;
                     if ( currentSector - map_index <= 1 && currentSector - map_index >= 0) {
                         if (currentSector - map_index== 2)
                             map_index += 1;
+                        location_queue[n_lq%location_queue.length] = map_index;
                         describe(map_index, false);
                     }
                 }
+
+                if(check_lq(location_queue) && changable && false){
+                    map_index = location_queue[0];
+                    describe(map_index, direction);
+                    location_queue[0] = -1;
+                }
+
+
 
             }
             @Override
@@ -392,19 +419,19 @@ public class Bluetooth {
         //코너 일 때 설정
         if (list_search(corner[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if ((section == "1" && map_index == 1)){
-                    tts.speak("막다른 길 입니다. "+drec[1] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                if ((section.equals("1") && map_index == 1)){
                     user_ori.change_cali_AtC(cali[1]);
+                    tts.speak("막다른 길 입니다. "+drec[1] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                else if (section == "2" && map_index == 8){
+                else if (section.equals("2") && map_index == 8){
                     tts.speak("막다른 길 입니다. "+ "1시 방향으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                else if (section == "2" && map_index == 9){
+                else if (section.equals("2") && map_index == 9){
                     tts.speak(drec[1] + "으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
                 else {
-                    tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                     user_ori.change_cali_AtC(cali[0]);
+                    tts.speak("막다른 길 입니다. "+drec[0] + "으로 돌아서 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
                 }
 
             }
@@ -414,21 +441,35 @@ public class Bluetooth {
         //그림 있다는 알림 및 그림 설명 실해
         if (list_search(p_loc[Integer.valueOf(section)], map_index)) {
             if (map_index != currentSector) {
-                if(section == "0" && map_index == 0){
+                if(Integer.valueOf(section) == 0 && map_index == 0){
                     tts.speak(wi.get_work(0,0)[2], TextToSpeech.QUEUE_ADD, null);
                 }
                 else {
                     String name = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[0];
                     String artist = wi.get_work(Integer.valueOf(section), index_return(p_loc[Integer.valueOf(section)], map_index))[1];
-                    tts.speak("잠시 멈춰주세요. " + artist + " 작가님의 작품 중 하나인 " + name + "이 좌측에 있습니다.", TextToSpeech.QUEUE_FLUSH, null);
-                    if((section == "0" && map_index == 10) || (section=="1" && map_index == 8)) {
-                        tts.speak("상세 설명을 들으시려면 몸을 좌우로 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
+                    tts.speak("잠시 멈춰주세요. " + artist + " 작가님의 작품 중 하나인 " + name, TextToSpeech.QUEUE_FLUSH, null);
+                    if((section.equals("0") && map_index == 10) ) {
                         user_ori.change_cali_AtC(cali[0]);
+                        tts.speak( "이 전방에 있습니다."+ "상세 설명을 들으시려면 몸을 좌우로 살짝 흔들어주세요.", TextToSpeech.QUEUE_ADD, null);
                     }
                     else {
-                        tts.speak("상세 설명을 들으시려면 " + drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
+                        tts.speak( "이 좌측에 있습니다."+ " 상세 설명을 들으시려면 " + drec[1] + "으로 돌아주세요.", TextToSpeech.QUEUE_ADD, null);
                         tts.speak("설명이 나오지 않는다면 몸을 살짞 흔들어 주세요", TextToSpeech.QUEUE_ADD, null);
                     }
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // TODO Auto-generated method stub
+                            // p_location time
+                            try {
+                                changable = false;
+                                Thread.sleep(15000);
+                                changable = true;
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }).start();
                 }
 
 
@@ -437,12 +478,12 @@ public class Bluetooth {
 
         if(list_search(last[Integer.valueOf(section)], map_index)){
             if(map_index != currentSector){
-                if (section == "0") {
+                if (section.equals("0")) {
+                    user_ori.change_cali_AtC(cali[1]);
                     tts.speak("해당 전시관이 끝났습니다", TextToSpeech.QUEUE_FLUSH, null);
                     tts.speak("9시 방향으로 돌아 제 2관으로 이동해주세요", TextToSpeech.QUEUE_ADD, null);
-                    user_ori.change_cali_AtC(cali[1]);
                 }
-                if(section == "1"){
+                if(section.equals("1")){
                     if(currentSector == 4){
                         tts.speak("앞으로 계속해서 이동해주세요.",TextToSpeech.QUEUE_FLUSH,null);
                     }
@@ -450,16 +491,18 @@ public class Bluetooth {
                     if(map_index == 9)
                         tts.speak("지금까지 제21회 우민미술상 수상작가 김지은 개인전《화성N지구에서》를 관람하였습니다. 작가에게 화성시 봉담지구에서의 일상 풍경은 때로는 지구가 아닌 행성 마르스의 풍경처럼 낯설게 다가왔습니다. 지금도 현대사회의 도시 공간은 반복해서 개발되며 고유한 장소성을 잃어가고 있습니다. 여러분은 오늘의 도시를, 주거공간을 어떻게 바라보고 계신가요? 이번 전시가 화성N지구의 이야기에서 여러분의 N지구에 대한 사유로 이어지길 기대합니다. 감사합니다.", TextToSpeech.QUEUE_FLUSH, null);
                 }
-                if(section == "2") {
+                if(section.equals("2")) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             //corner time
                             // TODO Auto-generated method stub
                             try {
-                                Thread.sleep(2000);
-                                tts.speak("11시 방향으로 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                changable = false;
                                 user_ori.change_cali_AtC(180);
+                                tts.speak("11시 방향으로 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
+                                Thread.sleep(0);
+                                changable = true;
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
@@ -494,33 +537,20 @@ public class Bluetooth {
         return -1;
     }
 
-    private void beacon_change(int section, int index){
-        this.Macs = MAC_info[section][index];
-        this.mac_index = index;
-
-        for(int i =0; i<n_b.length; i++){
-            n_b[i] = 0;
-            check[i] = false;
-        }
-    }
-
-    private void section_change_check(){
-        if(section == "0" && currentSector == last[Integer.valueOf(section)][0]){
-            start("1");
-            currentSector = 0;
+    public void section_change_check(){
+        if(section.equals("0") && currentSector == last[Integer.valueOf(section)][0]){
+            set_init("1", 0);
         }
 
-        if(section == "1" && currentSector == last[Integer.valueOf(section)][0]){
-            start("2");
-            currentSector = 0;
+        if(section.equals("1") && currentSector == last[Integer.valueOf(section)][0]){
+            set_init("2", 0);
         }
-        else if (section == "1" && currentSector == last[Integer.valueOf(section)][1]){
+        else if (section.equals("1") && currentSector == last[Integer.valueOf(section)][1]){
 
         }
 
-        if(section == "2" && currentSector == last[Integer.valueOf(section)][0]){
-            start("1");
-            currentSector = 5.5;
+        if(section.equals("2") && currentSector == last[Integer.valueOf(section)][0]){
+            set_init("1", 5.5);
         }
     }
 
@@ -531,28 +561,42 @@ public class Bluetooth {
     }
 
     public boolean p_location(){
-        if(section == "0" && currentSector == 0) return false;
+        if(section.equals("0") && currentSector == 0) return false;
         return list_search(p_loc[Integer.valueOf(section)], currentSector);
     }
     public boolean corner_location(){
         return list_search(corner[Integer.valueOf(section)], currentSector);
     }
+
+    public void set_changable(boolean tf){
+        this.changable = tf;
+    }
     public void set_direction(boolean tf){
         this.direction = tf;
     }
     public void set_explaining(boolean tf){ this.explaining = tf;}
-    public void set_blestart(boolean tf){this.ble_start = tf;}
 
+    public boolean check_lq(int[] arr){
+        int s = arr[0];
 
-    private boolean check_route(double current, int index){
+        int count = 0;
+        for (int i=0; i < location_queue.length; i++){
+            if(s==arr[i] || arr[i] != -1){
+                count++;
+            }
+
+        }
+        if(list_search(p_loc[Integer.valueOf(section)], arr[0]) && count >= 4)
+            return true;
+        return false;
+    }
+
+    public boolean check_route(double current, int index){
         int[] rt = route[Integer.valueOf(section)];
-        if((index - current <= secion_cali[Integer.valueOf(section)] && index - current >= 0)){
+        if((index - current <= secion_cali[Integer.valueOf(section)] && index - current >= 0) || (section.equals("0") && index == 13 && current > 10)){
             return true;
         }
         return  false;
-    }
-    public boolean mac_change_check(int current){
-        return list_search(mac_changes[Integer.valueOf(section)], current);
     }
 
     public boolean check_rssi(boolean [] arr){
@@ -562,12 +606,7 @@ public class Bluetooth {
         return true;
     }
 
-    private String RssiToString(int []arr){
-        String result = "";
-        for(int i =0; i< arr.length; i++)
-            result+= (char)arr[i];
-        return result;
-    }
+    public void set_blestart(boolean tf){ this.ble_start = tf;}
 
 }
 

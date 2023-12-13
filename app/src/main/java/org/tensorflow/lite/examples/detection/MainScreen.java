@@ -157,7 +157,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
         EditText et_section = findViewById(R.id.et_section);
         EditText et_sector = findViewById(R.id.et_sector);
-        EditText et_mac = findViewById(R.id.et_mac);
+        Button bt_set = findViewById(R.id.bt_set);
 
 
         click = false;
@@ -181,42 +181,52 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    int i = 0;
-                    while(true) {
-                        if(click) {
-                            b_layout.setRotation(i);
-                            bt_main.setRotation(-i);
-                            Thread.sleep(10);
-                            i++;
-                        }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    int i = 0;
+//                    while(true) {
+//                        if(click) {
+//                            b_layout.setRotation(i);
+//                            bt_main.setRotation(-i);
+//                            Thread.sleep(10);
+//                            i++;
+//                        }
+//
+//                    }
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        }).start();
 
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+        bt_set.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String section = et_section.getText().toString();
+                double sector = Double.valueOf(et_sector.getText().toString());
+                //int mac_index = Integer.valueOf(et_mac.getText().toString());
+
+                ble.set_init(section, sector);
             }
-        }).start();
+        });
 
         bt_main.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 click = !click;
                 if(!start){
+
+                    ble.start();
+
                     tts.speak("방향 설정을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
                     start = true;
                     detect_start = true;
-                    ble.start("0");
-                    WiFi.start();
-                    user_ori.start();
 
-                    String section = et_section.getText().toString();
-                    int sector = Integer.valueOf(et_sector.getText().toString());
-                    int mac_index = Integer.valueOf(et_mac.getText().toString());
-                    ble.init_setting(section, sector, mac_index);
+
+                    user_ori.start();
+                    //WiFi.start();
 
                     //store_m.reset_detector(detect_storage);
                     //detector_storage_count = 0;
@@ -336,11 +346,11 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
             }
             catch(IOException e) {
                 e.printStackTrace();
-                LOGGER.e(e, "Exception in updateActiveModel()");
-                Toast toast =
-                        Toast.makeText(
-                                getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
-                toast.show();
+//                LOGGER.e(e, "Exception in updateActiveModel()");
+//                Toast toast =
+//                        Toast.makeText(
+//                                getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
+//                toast.show();
                 finish();
             }
 
@@ -491,7 +501,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                             if (results.size() > 0) {
                                 Classifier.Recognition result = results.get(maxSize[0]);
                                 int classIndex = result.getDetectedClass();
-                                Log.e("CHECK", "getConfidence: " + Float.toString(result.getConfidence()));
+                                //Log.e("CHECK", "getConfidence: " + Float.toString(result.getConfidence()));
                                 if (classIndex <= 1 && result.getConfidence() >= 0.6) {  //신뢰도 0.6 이상만.
                                     RectF location = result.getLocation();
 
@@ -508,8 +518,8 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
                                             cropToFrameTransform.mapRect(location);
                                             result.setLocation(location);
                                             mappedRecognitions.add(result);
-                                            Log.e("CHECK", "isDetectPerson: " + Long.toString(tempTime - PersonDetectTime));
-                                            Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
+                                            //Log.e("CHECK", "isDetectPerson: " + Long.toString(tempTime - PersonDetectTime));
+                                            //Log.e("CHECK", "result confidence: " + result.getConfidence().toString());
                                             if ((tempTime - PersonDetectTime) >= PERSON_DETECT_INTERVAL_TIME) {
                                                 PersonDetectTime = tempTime;
                                                 //tts.speak(detect_person_String, TextToSpeech.QUEUE_ADD, null, null);

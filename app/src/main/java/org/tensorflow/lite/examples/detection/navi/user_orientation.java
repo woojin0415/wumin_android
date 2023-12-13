@@ -32,7 +32,7 @@ public class user_orientation implements SensorEventListener{
     private float [] filter = new float[filter_length];
     private float [] moving_check_filter = new float[filter_length];
     private int count;
-    private org.tensorflow.lite.examples.detection.navi.Bluetooth ble;
+    private Bluetooth ble;
     private boolean time_interval;
 
     //유저가 작품 위치에 있는 지 확인
@@ -95,8 +95,8 @@ public class user_orientation implements SensorEventListener{
     //그림 설명 중인지 아닌지 세팅
     public void set_explain(boolean value, String p_name){
         this.explain = value;
-        Log.e("ori", String.valueOf(explain));
-        Log.e("ori", p_name);
+        //Log.e("ori", String.valueOf(explain));
+        //Log.e("ori", p_name);
     }
 
     @Override
@@ -132,8 +132,8 @@ public class user_orientation implements SensorEventListener{
             SensorManager.getOrientation(rotation_values, orientation_values);
 
 
-            //long time = System.currentTimeMillis();
-            //String sector = String.valueOf(ble.getsection());
+            long time = System.currentTimeMillis();
+            String sector = String.valueOf(ble.getsection());
             double azimuth = (Math.toDegrees(orientation_values[0]) + 360) % 360;
 
             //OrientationStorage ori_data = new OrientationStorage();
@@ -157,39 +157,39 @@ public class user_orientation implements SensorEventListener{
             else if (ori_init_count == ori_init_filter.length){
                 calib_ori = orientation_filter_median(ori_init_filter);
                 ori_init_count++;
-                tts.speak("방향 설정이 완료되었습니다. 시스템을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
                 ble.set_blestart(true);
+                tts.speak("방향설정이 완료되었습니다. 시스템을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null);
             }
             else {
                 azimuth = azimuth - calib_ori;
-                if(ble.getsection() == 0 && ble.get_sector() == 8)
-                    azimuth +=40;
-                while(azimuth < 0)
-                    azimuth += 360;
-                azimuth %= 360;
 
-                Log.e("ori_",String.valueOf(azimuth),null);
-                if ((azimuth >= 240 && azimuth <= 300) && !explain_ori && ble.p_location() && (ble.get_sector() != 10)) {
-                    //tts.speak("그림이 있음", TextToSpeech.QUEUE_FLUSH, null);
-                    //Log.e("ori", String.valueOf(azimuth));
-                    explain_ori = true;
-                    ble.set_explaining(true);
-                    tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
-                    ble.speak_wi();
+                if(azimuth < 0)
+                    azimuth =  (azimuth + 360*4) % 360;
 
-                } else if ((azimuth >= 340 || azimuth <= 20) && explain_ori&& ble.p_location()){
-                    //tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
-                    //Log.e("ori", String.valueOf(azimuth));
-                    ble.scan();
-                    explain_ori = false;
-                    tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_ADD, null);
-                    ble.set_explaining(false);
-                    //ble.set_changable(true);
-                }
-                else if (azimuth >= 160 && azimuth <= 200 ) {
-                    //tts.speak("방향 변환", TextToSpeech.QUEUE_ADD, null);
-                    //Log.e("ori", String.valueOf(azimuth));
-                    //ble.set_direction(false);
+                //Log.e("ori_",String.valueOf(azimuth),null);
+                if(!(ble.getsection() == 0 && ble.get_sector() == 0)) {
+                    if ((azimuth >= 240 && azimuth <= 300) && !explain_ori && ble.p_location() && (ble.get_sector() != 10)) {
+                        //tts.speak("그림이 있음", TextToSpeech.QUEUE_FLUSH, null);
+                        //Log.e("ori", String.valueOf(azimuth));
+                        explain_ori = true;
+                        ble.set_explaining(true);
+                        tts.speak("작품 상세 설명을 시작합니다", TextToSpeech.QUEUE_FLUSH, null);
+                        ble.speak_wi();
+
+                    } else if ((azimuth >= 340 || azimuth <= 20) && explain_ori && ble.p_location()) {
+                        //tts.speak("그림이 있다가 없음", TextToSpeech.QUEUE_FLUSH, null);
+                        //Log.e("ori", String.valueOf(azimuth));
+                        ble.scan();
+                        explain_ori = false;
+                        tts.speak("앞 쪽으로 이동해주세요.", TextToSpeech.QUEUE_FLUSH, null);
+                        ble.set_explaining(false);
+                        ble.scan();
+                        //ble.set_changable(true);
+                    } else if (azimuth >= 160 && azimuth <= 200) {
+                        //tts.speak("방향 변환", TextToSpeech.QUEUE_ADD, null);
+                        //Log.e("ori", String.valueOf(azimuth));
+                        //ble.set_direction(false);
+                    }
                 }
             }
         }

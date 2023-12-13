@@ -325,27 +325,27 @@ public abstract class CameraActivity extends AppCompatActivity
 
   public void startBeaconService(){
     // 비콘 스캔을 위한 설정
-    beaconManager = BeaconManager.getInstanceForApplication(this);
-    beaconManager.bind(this);
-    BeaconParser parser = new BeaconParser().setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
-    beaconManager.getBeaconParsers().add(parser);
-
-    // HandlerThread 초기화 및 시작
-    HandlerThread handlerThread = new HandlerThread("AdvertisingThread");
-    handlerThread.start();
-
-    // AdvertisingHandler 초기화
-    advertisingHandler = new BeaconAdvertisingHandler(handlerThread.getLooper(), this); // 수정
-
-    // 비콘 advertising 시작 메시지 전송
-    advertisingHandler.sendEmptyMessage(BeaconAdvertisingHandler.MSG_START_ADVERTISING);
-
-    if(!isBluetoothEnabled())
-      Toast.makeText(
-                      CameraActivity.this,
-                      "Not isBluetoothEnabled",
-                      Toast.LENGTH_LONG)
-              .show();
+//    beaconManager = BeaconManager.getInstanceForApplication(this);
+//    beaconManager.bind(this);
+//    BeaconParser parser = new BeaconParser().setBeaconLayout(BeaconParser.ALTBEACON_LAYOUT);
+//    beaconManager.getBeaconParsers().add(parser);
+//
+//    // HandlerThread 초기화 및 시작
+//    HandlerThread handlerThread = new HandlerThread("AdvertisingThread");
+//    handlerThread.start();
+//
+//    // AdvertisingHandler 초기화
+//    advertisingHandler = new BeaconAdvertisingHandler(handlerThread.getLooper(), this); // 수정
+//
+//    // 비콘 advertising 시작 메시지 전송
+//    advertisingHandler.sendEmptyMessage(BeaconAdvertisingHandler.MSG_START_ADVERTISING);
+//
+//    if(!isBluetoothEnabled())
+//      Toast.makeText(
+//                      CameraActivity.this,
+//                      "Not isBluetoothEnabled",
+//                      Toast.LENGTH_LONG)
+//              .show();
   }
 
   private boolean isBluetoothEnabled() {
@@ -354,10 +354,10 @@ public abstract class CameraActivity extends AppCompatActivity
   }
 
   protected void stopBeaconService() {
-    // 액티비티가 종료되면서  종료
-    beaconManager.unbind(this);
-    // 액티비티 종료 시 AdvertisingHandler를 이용해 비콘 advertising 중지
-    advertisingHandler.sendEmptyMessage(BeaconAdvertisingHandler.MSG_STOP_ADVERTISING);
+//    // 액티비티가 종료되면서  종료
+//    beaconManager.unbind(this);
+//    // 액티비티 종료 시 AdvertisingHandler를 이용해 비콘 advertising 중지
+//    advertisingHandler.sendEmptyMessage(BeaconAdvertisingHandler.MSG_STOP_ADVERTISING);
   }
   protected ArrayList<String> getModelStrings(AssetManager mgr, String path){
     ArrayList<String> res = new ArrayList<String>();
@@ -505,14 +505,14 @@ public abstract class CameraActivity extends AppCompatActivity
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
 
-    //message queue 오류 제거용
-    Message msg = handler.obtainMessage();
-    msg.what = 1;
-    handler.sendMessage(msg);
+//    //message queue 오류 제거용
+//    Message msg = handler.obtainMessage();
+//    msg.what = 1;
+//    handler.sendMessage(msg);
 
     //initializeTTS();
     checkPermission();
-    startBeaconService();
+    //startBeaconService();
   }
 
   private void checkPermission() {
@@ -640,14 +640,15 @@ public abstract class CameraActivity extends AppCompatActivity
   public synchronized void onPause() {
     LOGGER.d("onPause " + this);
 
-    handlerThread.quitSafely();
-    try {
-      handlerThread.join();
-      handlerThread = null;
-      handler = null;
-    } catch (final InterruptedException e) {
-      LOGGER.e(e, "Exception!");
-    }
+//    handlerThread.quitSafely();
+//    try {
+//      handlerThread.join();
+//      handlerThread = null;
+//      handler = null;
+//    } catch (final InterruptedException e) {
+//      LOGGER.e(e, "Exception!");
+//    }
+    //1211 우진 수정
     super.onPause();
   }
 
@@ -661,7 +662,7 @@ public abstract class CameraActivity extends AppCompatActivity
   public synchronized void onDestroy() {
     LOGGER.d("onDestroy " + this);
     super.onDestroy();
-    stopBeaconService();
+    //stopBeaconService();
   }
 
 
