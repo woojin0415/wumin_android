@@ -33,6 +33,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -155,9 +156,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         //    throw new RuntimeException(e);
         //}
 
-        EditText et_section = findViewById(R.id.et_section);
-        EditText et_sector = findViewById(R.id.et_sector);
-        Button bt_set = findViewById(R.id.bt_set);
+        TextView tv = findViewById(R.id.tv_position);
 
 
         click = false;
@@ -172,7 +171,7 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
         user_ori = new user_orientation(sm, gyro, mag, rotation, tts, store_m);
 
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-        ble = new Bluetooth(adapter, user_ori, tts, store_m);
+        ble = new Bluetooth(adapter, user_ori, tts, store_m, tv);
         user_ori.set_ble(ble);
 
 
@@ -201,16 +200,6 @@ public class MainScreen extends CameraActivity implements ImageReader.OnImageAva
 //            }
 //        }).start();
 
-        bt_set.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String section = et_section.getText().toString();
-                double sector = Double.valueOf(et_sector.getText().toString());
-                //int mac_index = Integer.valueOf(et_mac.getText().toString());
-
-                ble.set_init(section, sector);
-            }
-        });
 
         bt_main.setOnClickListener(new View.OnClickListener() {
             @Override
